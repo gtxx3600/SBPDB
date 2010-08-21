@@ -8,19 +8,19 @@
 #include "../include/pf.h"
 
 int main() {
-	hash_map hm;
-	hmap_create(&hm,3);
-	assert(hm);
-	int n =20;
-	void* mydata=malloc(n);
-	hmap_insert(hm, "a", -1,1);
-	hmap_insert(hm, "b", -1,2);
-	hmap_insert(hm, "c", -1,3);
-	int a =(int) hmap_search(hm,"c");
-	printf("%d\n",a);
-	hmap_delete(hm,"c");
-	a =(int) hmap_search(hm,"a");
-	printf("%d\n",a);
+//	hash_map hm;
+//	hmap_create(&hm,3);
+//	assert(hm);
+//	int n =20;
+//	void* mydata=malloc(n);
+//	hmap_insert(hm, "a", -1,1);
+//	hmap_insert(hm, "b", -1,2);
+//	hmap_insert(hm, "c", -1,3);
+//	int a =(int) hmap_search(hm,"c");
+//	printf("%d\n",a);
+//	hmap_delete(hm,"a");
+//	a =(int) hmap_search(hm,"a");
+//	printf("%d\n",a);
 
 	struct PF_FileHandle test1;
 //	struct PF_PageHandle a;
@@ -36,7 +36,7 @@ int main() {
     return 0;
 }
 
-int CreateFile(const char *fileName) {
+RC CreateFile(const char *fileName) {
 	FILE *efile = fopen(fileName, "rb+");
 
 	if (efile == NULL) {
@@ -54,7 +54,7 @@ int CreateFile(const char *fileName) {
 	}
 }
 
-int DestroyFile(const char *fileName){
+RC DestroyFile(const char *fileName){
 	if( remove(fileName) == -1 )
 	{
 
@@ -66,7 +66,7 @@ int DestroyFile(const char *fileName){
 
 }
 
-int OpenFile(const char *fileName, struct PF_FileHandle* fileHandle){
+RC OpenFile(const char *fileName, struct PF_FileHandle* fileHandle){
 	FILE *infile = fopen(fileName, "rb+");
 	if ( infile == NULL){
 		printf("file not exist");
@@ -100,7 +100,7 @@ int OpenFile(const char *fileName, struct PF_FileHandle* fileHandle){
 	}
 }
 
-int CloseFile(struct PF_FileHandle *fileHandle){
+RC CloseFile(struct PF_FileHandle *fileHandle){
 	if(GetIfOpen(fileHandle)==1){
 		return 0;
 	}
@@ -109,11 +109,11 @@ int CloseFile(struct PF_FileHandle *fileHandle){
 	}
 }
 
-int AllocateBlock(char *buffer){
+RC AllocateBlock(char *buffer){
 	return 0;
 }
 
-int DisposeBlock(char *buffer)
+RC DisposeBlock(char *buffer)
 {
 
 	return 0;
