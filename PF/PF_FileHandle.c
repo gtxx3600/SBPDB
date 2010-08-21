@@ -5,6 +5,8 @@
  *      Author: cxy
  */
 #include "pf.h"
+#include "bufferdata.h"
+
 RC GetFirstPage(struct PF_PageHandle *pageHandle); // Get the first page
 RC GetLastPage(struct PF_PageHandle *pageHandle,
 		struct PF_FileHandle *fileHandle); // Get the last page
@@ -17,7 +19,7 @@ RC SetIfOpen(int bln, struct PF_FileHandle *fileHandle);
 RC GetIfOpen(struct PF_FileHandle *fileHandle);
 RC SetNpage(PageNum pn, struct PF_FileHandle *fileHandle);
 PageNum GetNpage(struct PF_FileHandle *fileHandle);
-
+RC DisposePage (PageNum pageNum) ;
 RC GetFirstPage(struct PF_PageHandle *pageHandle) {
 	return GetThisPage(0, pageHandle);
 }
@@ -52,6 +54,22 @@ RC AllocatePage(struct PF_PageHandle *pageHandle,
 	return (GetThisPage(fileHandle->npage - 1, pageHandle));
 }
 
+RC DisposePage (PageNum pageNum)
+{
+	return 0;
+}
+
+RC MarkDirty(PageNum pageNum,PF_FileHandle *fileHandle) {
+	Buffer_Data *theBD;
+	char strPageNum[10];
+	sprintf(strPageNum, "%d", pageNum);
+	strcat(fileHandle->filename,strPageNum);
+
+	int num = theBD->getMap(fileHandle->filename,theBD);
+
+	theBD->dirty[num] = 1;
+	return (NORMAL);
+}
 RC SetIfOpen(int bln, struct PF_FileHandle *fileHandle) {
 	fileHandle->if_open = bln;
 	return NORMAL;

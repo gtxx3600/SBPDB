@@ -8,12 +8,12 @@
 #include "pf.h"
 
 
-RC GetData(char **pData,struct PF_PageHandle *pageHandle) {
+RC PF_GetData(char **pData,struct PF_PageHandle *pageHandle) {
 	*pData = pageHandle->page;
 	return NORMAL;
 }
 
-RC GetPageNum(PageNum *pageNum,struct PF_PageHandle *pageHandle) {
+RC PF_GetPageNum(PageNum *pageNum,struct PF_PageHandle *pageHandle) {
 	*pageNum = pageHandle->pagenum;
 	printf("%d",*pageNum);
 	return NORMAL;
