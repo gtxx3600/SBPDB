@@ -1,17 +1,22 @@
 #ifndef SBPDB_H
 #define SBPDB_H
 
-enum AttrType { INT, STRING, FLOAT };
+enum AttrType {
+	INT, STRING, FLOAT
+};
 
-enum CompOp { EQ_OP, LT_OP, GT_OP, LE_OP, GE_OP, NE_OP, NO_OP };
+enum CompOp {
+	EQ_OP, LT_OP, GT_OP, LE_OP, GE_OP, NE_OP, NO_OP
+};
 
-enum ClientHint { NO_HINT };
+enum ClientHint {
+	NO_HINT
+};
 
 typedef int RC;
 
-
 #define   NORMAL					0
-    // Positive
+// Positive
 #define	PF_EOF  				1             // end of file
 #define	PF_PAGEPINNED			2       // page pinned in buffer
 #define	PF_PAGENOTINBUF		3    // page to be unpinned is not in buffer
@@ -39,19 +44,17 @@ typedef int RC;
 #define	QL_WRONGVALUENUM		21
 #define	QL_WRONGVALUETYPE		22
 #define	QL_WRONGATTRTYPE		23
-    // Negative
+// Negative
 #define	PF_NOMEM 				-15     // out of memory
 #define	PF_NOBUF				-16           // out of buffer space
 #define	PF_INCOMPLETEREAD		-17  // incomplete read of page from file
 #define	PF_INCOMPLETEWRITE	-18 // incomplete write of page to file
 #define	PF_HDRREAD				-19         // incomplete read of header from file
 #define	PF_HDRWRITE			-20        // incomplete write of header to file
-    // Internal PF errors:
+// Internal PF errors:
 #define	PF_PAGEINBUF			-21       // new allocated page already in buffer
 #define	PF_HASHNOTFOUND		-22    // hash table entry not found
 #define	PF_HASHPAGEEXIST		-23   // page already exists in hash table
 #define	PF_INVALIDNAME		-24     // invalid file name
 #define	PF_UNIX				-25            // Unix error
-
-
 #endif
