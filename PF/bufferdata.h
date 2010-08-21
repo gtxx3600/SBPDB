@@ -20,7 +20,7 @@
 #define OTHER  1
 #define PASS_BREAK  3
 #define ALL_PAGE_SIZE  4096
-struct Buffer_Data {
+typedef struct Buffer_Data {
 	char Buffer_Pool[PF_BUFFER_SIZE * (ALL_PAGE_SIZE)];
 	int Buffer_Chain[PF_BUFFER_SIZE * (2 + OTHER)];
 	int LRU;
@@ -43,7 +43,7 @@ struct Buffer_Data {
 	int (*getLRU)(struct Buffer_Data bd);
 	int (*setMRU)(int num, struct Buffer_Data *bd);
 	int (*setLRU)(int num, struct Buffer_Data *bd);
-};
+}Buffer_Data;
 
 RC initBuffer_Data(struct Buffer_Data *bd);
 #endif /* BUFFERDATA_H_ */

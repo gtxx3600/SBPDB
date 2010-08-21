@@ -180,3 +180,4 @@ RC initBuffer_Data(struct Buffer_Data *bd){
 	hmap_create(&(bd->hm), 1024);
 	return (NORMAL);
 }
+
