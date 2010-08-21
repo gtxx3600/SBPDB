@@ -10,11 +10,11 @@
 
 RC GetData(char **pData,struct PF_PageHandle *pageHandle) {
 	*pData = pageHandle->page;
-	return 0;
+	return NORMAL;
 }
 
 RC GetPageNum(PageNum *pageNum,struct PF_PageHandle *pageHandle) {
 	*pageNum = pageHandle->pagenum;
 	printf("%d",*pageNum);
-	return 0;
+	return NORMAL;
 }

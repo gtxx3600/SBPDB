@@ -16,10 +16,9 @@
 typedef int PageNum;
 #define MAX_FILENAME   10
 
-
 struct PF_PageHandle;
 
-struct PF_FileHandle {
+typedef struct PF_FileHandle {
 
 	char filename[MAX_FILENAME];
 
@@ -37,7 +36,7 @@ struct PF_FileHandle {
 	RC (*GetIfOpen)(struct PF_FileHandle *fileHandle);
 	RC (*SetNpage)(PageNum pn, struct PF_FileHandle *fileHandle);
 	PageNum (*GetNpage)(struct PF_FileHandle *fileHandle);
-};
+}PF_FileHandle;
 
 //    void PF_FileHandle(struct PF_FileHandle *fileHandle);    // Copy constructor
 
@@ -52,7 +51,7 @@ struct PF_FileHandle {
 
 
 //pf manager//
-struct PF_MANAGER{
+typedef struct PF_Manager{
 RC (*CreateFile)(const char *fileName); // Create a new file
 RC (*DestroyFile)(const char *fileName); // Destroy a file
 RC (*OpenFile)(const char *fileName, struct PF_FileHandle *fileHandle);
@@ -60,10 +59,10 @@ RC (*OpenFile)(const char *fileName, struct PF_FileHandle *fileHandle);
 RC (*CloseFile)(struct PF_FileHandle *fileHandle); // Close a file
 RC (*AllocateBlock)(char *buffer); // Allocate a new scratch page in buffer
 RC (*DisposeBlock)(char *buffer); // Dispose of a scratch page
-};
+}PF_Manager;
 
 //pf page handle//
-struct PF_PageHandle {
+typedef struct PF_PageHandle {
 
 	char filename[MAX_FILENAME];
 	PageNum pagenum;
@@ -71,7 +70,7 @@ struct PF_PageHandle {
 
 	RC (*GetData)(char **pData, struct PF_PageHandle *pageHandle);
 	RC (*GetPageNum)(PageNum *pageNum, struct PF_PageHandle *pageHandle);
-};
+}PF_PageHandle;
 
 
 
