@@ -7,51 +7,51 @@ enum CompOp { EQ_OP, LT_OP, GT_OP, LE_OP, GE_OP, NE_OP, NO_OP };
 
 enum ClientHint { NO_HINT };
 
-enum RC {
-    NORMAL = 0,
+typedef int RC;
+
+
+#define   NORMAL  0
     // Positive
-    PF_EOF,             // end of file
-    PF_PAGEPINNED,      // page pinned in buffer
-    PF_PAGENOTINBUF,    // page to be unpinned is not in buffer
-    PF_PAGEUNPINNED,    // page already unpinned
-    PF_PAGEFREE,        // page already free
-    PF_INVALIDPAGE,     // invalid page number
-    PF_FILEOPEN,        // file handle already open
-    PF_CLOSEDFILE,      // file is closed
-	PF_UNEXIST,			// file is not exist
-	PF_EXIST,			// file is exist
-	PF_NOSCRATCH,
-	PF_PAGENOTEXIST,
+#define   PF_EOF  				1             // end of file
+#define   PF_PAGEPINNED			2       // page pinned in buffer
+#define	PF_PAGENOTINBUF		3    // page to be unpinned is not in buffer
+#define    PF_PAGEUNPINNED		4    // page already unpinned
+#define    PF_PAGEFREE			5        // page already free
+#define    PF_INVALIDPAGE		6     // invalid page number
+#define    PF_FILEOPEN			7        // file handle already open
+#define    PF_CLOSEDFILE			8      // file is closed
+#define	PF_UNEXIST				9			// file is not exist
+#define	PF_EXIST				10			// file is exist
+#define	PF_NOSCRATCH			11
+#define	PF_PAGENOTEXIST		12
 
-	RM_OUTOFTABLESIZE,
-	RM_OUTOFREC,
-	RM_ATTR_LENGTH_NOTRIGHT,
-	RM_EOF,
+#define	RM_OUTOFTABLESIZE		13
+#define	RM_OUTOFREC			14
+#define	RM_ATTR_LENGTH_NOTRIGHT		15
+#define	RM_EOF					16
 
-    IX_TYPENOTSUPPORT,
-    IX_EXIST,
-    IX_NOTEXIST,
+#define    IX_TYPENOTSUPPORT	17
+#define    IX_EXIST				18
+#define    IX_NOTEXIST			19
 
-    SM_NODIR,
+#define    SM_NODIR				20
 
-    QL_WRONGVALUENUM,
-    QL_WRONGVALUETYPE,
-    QL_WRONGATTRTYPE,
-
+#define    QL_WRONGVALUENUM		21
+#define    QL_WRONGVALUETYPE	22
+#define    QL_WRONGATTRTYPE		23
     // Negative
-    PF_NOMEM = -15,     // out of memory
-    PF_NOBUF,           // out of buffer space
-    PF_INCOMPLETEREAD,  // incomplete read of page from file
-    PF_INCOMPLETEWRITE, // incomplete write of page to file
-    PF_HDRREAD,         // incomplete read of header from file
-    PF_HDRWRITE,        // incomplete write of header to file
+#define    PF_NOMEM 				-15     // out of memory
+#define    PF_NOBUF				-16           // out of buffer space
+#define    PF_INCOMPLETEREAD	-17  // incomplete read of page from file
+#define    PF_INCOMPLETEWRITE	-18 // incomplete write of page to file
+#define    PF_HDRREAD			-19         // incomplete read of header from file
+#define    PF_HDRWRITE			-20        // incomplete write of header to file
     // Internal PF errors:
-    PF_PAGEINBUF,       // new allocated page already in buffer
-    PF_HASHNOTFOUND,    // hash table entry not found
-    PF_HASHPAGEEXIST,   // page already exists in hash table
-    PF_INVALIDNAME,     // invalid file name
-    PF_UNIX,            // Unix error
+#define    PF_PAGEINBUF			-21       // new allocated page already in buffer
+#define    PF_HASHNOTFOUND		-22    // hash table entry not found
+#define    PF_HASHPAGEEXIST		-23   // page already exists in hash table
+#define    PF_INVALIDNAME		-24     // invalid file name
+#define    PF_UNIX				-25            // Unix error
 
-};
 
 #endif
