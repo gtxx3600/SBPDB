@@ -6,29 +6,29 @@
  */
 #include "../include/pf.h"
 
-int GetFirstPage(struct PF_PageHandle *pageHandle) {
+RC GetFirstPage(struct PF_PageHandle *pageHandle) {
 	return GetThisPage(0, pageHandle);
 }
 
-int GetLastPage(struct PF_PageHandle *pageHandle,struct PF_FileHandle *fileHandle) {
+RC GetLastPage(struct PF_PageHandle *pageHandle,struct PF_FileHandle *fileHandle) {
 	return GetThisPage(fileHandle->npage - 1, pageHandle);
 }
 
-int GetNextPage(PageNum current, struct PF_PageHandle *pageHandle) {
+RC GetNextPage(PageNum current, struct PF_PageHandle *pageHandle) {
 	return GetThisPage(current + 1, pageHandle);
 }
 
-int GetPrevPage(PageNum current, struct PF_PageHandle *pageHandle) {
+RC GetPrevPage(PageNum current, struct PF_PageHandle *pageHandle) {
 	return GetThisPage(current - 1, pageHandle);
 }
 
-int GetThisPage(PageNum pageNum,struct PF_PageHandle *pageHandle) {
+RC GetThisPage(PageNum pageNum,struct PF_PageHandle *pageHandle) {
 
 
 	return 0;
 }
 
-int AllocatePage(struct PF_PageHandle *pageHandle,struct PF_FileHandle *fileHandle){
+RC AllocatePage(struct PF_PageHandle *pageHandle,struct PF_FileHandle *fileHandle){
 	fileHandle->npage++;
 //	string str(filename);
 //	char* p = &str[0];
@@ -39,16 +39,16 @@ int AllocatePage(struct PF_PageHandle *pageHandle,struct PF_FileHandle *fileHand
 	return (GetThisPage(fileHandle->npage - 1, pageHandle));
 }
 
-int SetIfOpen(int bln, struct PF_FileHandle *fileHandle) {
+RC SetIfOpen(int bln, struct PF_FileHandle *fileHandle) {
 	fileHandle->if_open = bln;
 	return 0;
 }
 
-int GetIfOpen(struct PF_FileHandle *fileHandle) {
+RC GetIfOpen(struct PF_FileHandle *fileHandle) {
 	return (fileHandle->if_open);
 }
 
-int SetNpage(PageNum pn, struct PF_FileHandle *fileHandle) {
+RC SetNpage(PageNum pn, struct PF_FileHandle *fileHandle) {
 	fileHandle->npage = pn;
 	return 0;
 }

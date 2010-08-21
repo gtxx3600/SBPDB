@@ -11,17 +11,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "hashmap.h"
-
+#include "sbpdb.h"
 typedef int PageNum;
 #define MAX_FILENAME   10
-#define  NIL  -2
-#define  ALL_PAGES  -1
-#define PF_PAGE_SIZE  4092
-#define PF_BUFFER_SIZE 40
-#define OTHER  1
-#define PASS_BREAK  3
-#define ALL_PAGE_SIZE  4096
+
 
 struct PF_PageHandle;
 
@@ -31,20 +24,23 @@ struct PF_FileHandle {
 
 	int if_open;
 	PageNum npage;
-
-
+	RC (*GetFirstPage)(struct PF_PageHandle *pageHandle); // Get the first page
+	RC (*GetLastPage)(struct PF_PageHandle *pageHandle,
+			struct PF_FileHandle *fileHandle); // Get the last page
+	RC (*GetNextPage)(PageNum current, struct PF_PageHandle *pageHandle); // Get the next page
+	RC (*GetPrevPage)(PageNum current, struct PF_PageHandle *pageHandle);
+	RC (*GetThisPage)(PageNum pageNum, struct PF_PageHandle *pageHandle); // Get a specific page
+	RC (*AllocatePage)(struct PF_PageHandle *pageHandle,
+			struct PF_FileHandle *fileHandle);
+	RC (*SetIfOpen)(int bln, struct PF_FileHandle *fileHandle);
+	RC (*GetIfOpen)(struct PF_FileHandle *fileHandle);
+	RC (*SetNpage)(PageNum pn, struct PF_FileHandle *fileHandle);
+	PageNum (*GetNpage)(struct PF_FileHandle *fileHandle);
 };
 
 //    void PF_FileHandle(struct PF_FileHandle *fileHandle);    // Copy constructor
 
-int GetFirstPage(struct PF_PageHandle *pageHandle); // Get the first page
-int GetLastPage(struct PF_PageHandle *pageHandle,
-		struct PF_FileHandle *fileHandle); // Get the last page
-int GetNextPage(PageNum current, struct PF_PageHandle *pageHandle); // Get the next page
-int GetPrevPage(PageNum current, struct PF_PageHandle *pageHandle);
-int GetThisPage(PageNum pageNum, struct PF_PageHandle *pageHandle); // Get a specific page
-int AllocatePage(struct PF_PageHandle *pageHandle,
-		struct PF_FileHandle *fileHandle);
+
 //    RC DisposePage(PageNum pageNum);                   // Dispose of a page
 //    RC MarkDirty(PageNum pageNum) const;               // Mark a page as dirty
 //    RC UnpinPage(PageNum pageNum) const;               // Unpin a page
@@ -52,21 +48,19 @@ int AllocatePage(struct PF_PageHandle *pageHandle,
 //                                                       //   to disk
 
 
-int SetIfOpen(int bln, struct PF_FileHandle *fileHandle);
-int GetIfOpen(struct PF_FileHandle *fileHandle);
-int SetNpage(PageNum pn, struct PF_FileHandle *fileHandle);
-PageNum GetNpage(struct PF_FileHandle *fileHandle);
+
 
 //pf manager//
+struct PF_MANAGER{
+RC (*CreateFile)(const char *fileName); // Create a new file
+RC (*DestroyFile)(const char *fileName); // Destroy a file
+RC (*OpenFile)(const char *fileName, struct PF_FileHandle *fileHandle);
 
-int CreateFile(const char *fileName); // Create a new file
-int DestroyFile(const char *fileName); // Destroy a file
-int OpenFile(const char *fileName, struct PF_FileHandle *fileHandle);
+RC (*CloseFile)(struct PF_FileHandle *fileHandle); // Close a file
+RC (*AllocateBlock)(char *buffer); // Allocate a new scratch page in buffer
+RC (*DisposeBlock)(char *buffer); // Dispose of a scratch page
+};
 
-int CloseFile(struct PF_FileHandle *fileHandle); // Close a file
-int AllocateBlock(char *buffer); // Allocate a new scratch page in buffer
-int DisposeBlock(char *buffer); // Dispose of a scratch page
-//
 //pf page handle//
 struct PF_PageHandle {
 
@@ -74,40 +68,14 @@ struct PF_PageHandle {
 	PageNum pagenum;
 	char *page;
 
+	RC (*GetData)(char **pData, struct PF_PageHandle *pageHandle);
+	RC (*GetPageNum)(PageNum *pageNum, struct PF_PageHandle *pageHandle);
 };
 
-int GetData(char **pData, struct PF_PageHandle *pageHandle);
-int GetPageNum(PageNum *pageNum, struct PF_PageHandle *pageHandle);
 
-struct Buffer_Data {
-	char Buffer_Pool[PF_BUFFER_SIZE * (ALL_PAGE_SIZE)];
-	int Buffer_Chain[PF_BUFFER_SIZE * (2 + OTHER)];
-	int LRU;
-	int MRU;
-	 hash_map hm;
-//map<string, int> hist;
-};
 
-struct Buffer_Data InitBufferData();
-//int getdirty(int num);
-int getfname(int num);
-int getdata(int num);
-int delMRU(struct Buffer_Data *bd);
-int delLRU(struct Buffer_Data *bd);
-int addLRU(int num, struct Buffer_Data *bd);
-int addMRU(int num, struct Buffer_Data *bd);
-int delChain(int num, struct Buffer_Data *bd);
-int writeBack(int num);
-int writeBackWithDel(int num, struct Buffer_Data *bd);
-int addMap (char* str , int num,struct Buffer_Data *bd);
-int delMap (char* str ,struct Buffer_Data *bd);
-//int delMap(string str, int num);
-//int getMap(string str);
-int getMRU(struct Buffer_Data bd);
-int getLRU(struct Buffer_Data bd);
-int setMRU(int num, struct Buffer_Data *bd);
-int setLRU(int num, struct Buffer_Data *bd);
 
-struct Buffer_Data * getBuffer_Data();
+
+
 
 #endif /* PF_H_ */

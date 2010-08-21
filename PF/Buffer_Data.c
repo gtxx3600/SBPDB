@@ -5,33 +5,27 @@
  *      Author: cxy
  */
 
-#include "../include/pf.h"
+#include "bufferdata.h"
+#include "hashmap.h"
 
-struct Buffer_Data InitBufferData() {
-	struct Buffer_Data *temp;
-	int i = 0;
-	for (i = 0; i < PF_BUFFER_SIZE; i++) {
-		temp->Buffer_Pool[getdirty(i)] = '0';
-		int j = 0;
-		for (j = 0; j < MAX_FILENAME; j++) {
-			temp->Buffer_Pool[getfname(i) + j] = '\0';
-		}
-		for (j = 0; j < PF_PAGE_SIZE; j++) {
-			temp->Buffer_Pool[getdata(i) + j] = '\0';
-		}
-	}
-	for (i = 0; i < PF_BUFFER_SIZE; i++) {
-		temp->Buffer_Chain[i * (2 + OTHER)] = i - 1;
-		temp->Buffer_Chain[i * (2 + OTHER) + 1] = 0;
-		temp->Buffer_Chain[i * (2 + OTHER) + 2] = i + 1;
-	}
-	temp->Buffer_Chain[PF_BUFFER_SIZE * (2 + OTHER) - 1] = -1;
-	temp->LRU = 0;
-	temp->MRU = PF_BUFFER_SIZE - 1;
-	hmap_create(&(temp->hm), 1024);
-	return *temp;
+
+int addMap (char* str , int num,struct Buffer_Data *bd)
+{
+	hmap_insert(bd->hm,str,-1,(void*)(num+1));
+	return 0;
 }
 
+int delMap (char* str ,struct Buffer_Data *bd)
+{
+	hmap_delete(bd->hm,str);
+	return 0;
+}
+
+int getMap (char* str,struct Buffer_Data *bd)
+{
+	hmap_search(bd->hm,str);
+	return 0;
+}
 int getMRU(struct Buffer_Data bd) {
 	return (bd.MRU);
 }
@@ -48,22 +42,6 @@ int setLRU(int num, struct Buffer_Data *bd) {
 int setMRU(int num, struct Buffer_Data *bd) {
 	bd->MRU = num;
 	return 0;
-}
-
-int getdirty(int num) {
-	if (num > -1) {
-		return (num * ALL_PAGE_SIZE + MAX_FILENAME);
-	} else {
-		return (-1);
-	}
-}
-
-int getfname(int num) {
-	if (num != -1) {
-		return (num * ALL_PAGE_SIZE);
-	} else {
-		return (-1);
-	}
 }
 
 int getdata(int num) {
@@ -136,34 +114,69 @@ int delChain(int num,struct Buffer_Data *bd){
 }
 
 int  writeBackWithDel(int num,struct Buffer_Data *bd){
-	char filename[MAX_FILENAME];
-	int i =0;
-	for ( i = 0; i < MAX_FILENAME; i++){
-		filename[i] = bd->Buffer_Pool[getfname(num)+ i];
-	}
+	char* filename;
+	filename = bd->fname[num];
 	int intPageNum = bd->Buffer_Chain[(2 + OTHER) * num + 1];
 	char strPageNum[10];
 	sprintf(strPageNum, "%d", intPageNum);
 	strcat(filename,strPageNum);
+	delMap(filename,bd) ;
+	FILE *outfile =fopen(filename,"wb");
+	if ( outfile == NULL){
+			printf("file not exist");
+			return 1;
+		}else
+		{
+			fseek(outfile,intPageNum * ALL_PAGE_SIZE,SEEK_SET );
+			int suc = fwrite(&(bd->Buffer_Pool[getdata(num)]), PF_BUFFER_SIZE, 1, outfile);
+			fclose(outfile);
+			return suc;
+		}
 
 	return 0;
 }
 
-int addMap (char* str , int num,struct Buffer_Data *bd)
-{
-	hmap_insert(bd->hm,str,-1,num+1);
+int  writeBack(int num,struct Buffer_Data *bd){
+	char* filename;
+	filename = bd->fname[num];
+	int intPageNum = bd->Buffer_Chain[(2 + OTHER) * num + 1];
+	char strPageNum[10];
+	sprintf(strPageNum, "%d", intPageNum);
+	strcat(filename,strPageNum);
+	FILE *outfile =fopen(filename,"wb");
+	if ( outfile == NULL){
+			printf("file not exist");
+			return 1;
+		}else
+		{
+			fseek(outfile,intPageNum * ALL_PAGE_SIZE,SEEK_SET );
+			int suc = fwrite(&(bd->Buffer_Pool[getdata(num)]), PF_BUFFER_SIZE, 1, outfile);
+			fclose(outfile);
+			return suc;
+		}
+
 	return 0;
 }
 
-int delMap (char* str ,struct Buffer_Data *bd)
-{
-	hmap_delete(bd->hm,str);
-	return 0;
-}
 
-int getMap (char* str,struct Buffer_Data *bd)
-{
-	hmap_search(bd->hm,str);
-	return 0;
+RC initBuffer_Data(struct Buffer_Data *bd){
+	int i = 0;
+	for (i = 0; i < PF_BUFFER_SIZE; i++) {
+		bd->dirty[i]=0;
+		bd->fname[i]='\0';
+		int j = 0;
+		for (j = 0; j < PF_PAGE_SIZE; j++) {
+			bd->Buffer_Pool[getdata(i) + j] ='\0';
+		}
+	}
+	for (i = 0; i < PF_BUFFER_SIZE; i++) {
+		bd->Buffer_Chain[i * (2 + OTHER)] = i - 1;
+		bd->Buffer_Chain[i * (2 + OTHER) + 1] = 0;
+		bd->Buffer_Chain[i * (2 + OTHER) + 2] = i + 1;
+	}
+	bd->Buffer_Chain[PF_BUFFER_SIZE * (2 + OTHER) - 1] = -1;
+	bd->LRU = 0;
+	bd->MRU = PF_BUFFER_SIZE - 1;
+	hmap_create(&(bd->hm), 1024);
+	return (NORMAL);
 }
-
