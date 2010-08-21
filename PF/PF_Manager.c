@@ -6,6 +6,7 @@
  */
 
 #include "pf.h"
+#include "bufferdata.h"
 RC CreateFile (const char *fileName); // Create a new file
 RC DestroyFile (const char *fileName); // Destroy a file
 RC OpenFile (const char *fileName, struct PF_FileHandle *fileHandle);
@@ -38,10 +39,10 @@ RC DestroyFile(const char *fileName){
 	{
 
 		printf("file not exist");
-		return 1;
+		return PF_NOTEXIST;
 	}
 	else
-		return 0;
+		return NORMAL;
 
 }
 
@@ -49,7 +50,7 @@ RC OpenFile(const char *fileName, struct PF_FileHandle* fileHandle){
 	FILE *infile = fopen(fileName, "rb+");
 	if ( infile == NULL){
 		printf("file not exist");
-		return 1;
+		return PF_NOTEXIST;
 	}
 	else{
 //		Buffer_Data *theBD = getBuffer_Data();
@@ -65,7 +66,7 @@ RC OpenFile(const char *fileName, struct PF_FileHandle* fileHandle){
 		for (; i < MAX_FILENAME; i++){
 			fileHandle->filename[i] = '\0';
 		}
-		SetIfOpen(1,fileHandle);
+		fileHandle->SetIfOpen(1,fileHandle);
 		PageNum pn;
 		char numc[4];
 		if(fread(numc, 4, 1, infile))
@@ -73,18 +74,18 @@ RC OpenFile(const char *fileName, struct PF_FileHandle* fileHandle){
 				//printf("a");
 		}
 		pn = atoi(numc);
-		SetNpage(pn,fileHandle);
+		fileHandle->SetNpage(pn,fileHandle);
 		fclose(infile);
-		return 0;
+		return NORMAL;
 	}
 }
 
 RC CloseFile(struct PF_FileHandle *fileHandle){
-	if(GetIfOpen(fileHandle)==1){
-		return 0;
+	if(fileHandle->GetIfOpen(fileHandle)==1){
+		return NORMAL;
 	}
 	else{
-		return 1;
+		return PF_CLOSEDFILE;
 	}
 }
 
