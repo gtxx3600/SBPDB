@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "sbpdb.h"
+
 typedef int PageNum;
 #define MAX_FILENAME   10
 

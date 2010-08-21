@@ -5,7 +5,7 @@
  *      Author: cxy
  */
 
-#include "../include/pf.h"
+#include "pf.h"
 
 
 RC GetData(char **pData,struct PF_PageHandle *pageHandle) {

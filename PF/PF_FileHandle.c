@@ -4,7 +4,7 @@
  *  Created on: 2010-8-20
  *      Author: cxy
  */
-#include "../include/pf.h"
+#include "pf.h"
 
 RC GetFirstPage(struct PF_PageHandle *pageHandle) {
 	return GetThisPage(0, pageHandle);

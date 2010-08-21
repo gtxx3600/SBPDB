@@ -5,36 +5,15 @@
  *      Author: cxy
  */
 
-#include "../include/pf.h"
+#include "pf.h"
+RC CreateFile (const char *fileName); // Create a new file
+RC DestroyFile (const char *fileName); // Destroy a file
+RC OpenFile (const char *fileName, struct PF_FileHandle *fileHandle);
 
-int main() {
-//	hash_map hm;
-//	hmap_create(&hm,3);
-//	assert(hm);
-//	int n =20;
-//	void* mydata=malloc(n);
-//	hmap_insert(hm, "a", -1,1);
-//	hmap_insert(hm, "b", -1,2);
-//	hmap_insert(hm, "c", -1,3);
-//	int a =(int) hmap_search(hm,"c");
-//	printf("%d\n",a);
-//	hmap_delete(hm,"a");
-//	a =(int) hmap_search(hm,"a");
-//	printf("%d\n",a);
+RC CloseFile (struct PF_FileHandle *fileHandle); // Close a file
+RC AllocateBlock (char *buffer); // Allocate a new scratch page in buffer
+RC DisposeBlock (char *buffer); // Dispose of a scratch page
 
-	struct PF_FileHandle test1;
-//	struct PF_PageHandle a;
-//	char* b="a";printf("%s",b);
-//	GetData(&b,&a) ;
-
-    CreateFile("r1");
-    OpenFile("r1",&test1);
-  //  printf("%s",test1.filename);
- //   printf("%d",test1.if_open);
-    CloseFile(&test1);
-    DestroyFile("r1");
-    return 0;
-}
 
 RC CreateFile(const char *fileName) {
 	FILE *efile = fopen(fileName, "rb+");
@@ -46,11 +25,11 @@ RC CreateFile(const char *fileName) {
 		sprintf(numc, "%d", num);
 		fwrite(numc, 4, 1, cfile);
 		fclose(cfile);
-		return 0;//normal return
+		return NORMAL;//normal return
 	} else {
 		fclose(efile);
 		printf("file exist");
-		return 1;//file exist
+		return (PF_EXIST);//file exist
 	}
 }
 
