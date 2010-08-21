@@ -9,9 +9,9 @@
 #include "hashmap.h"
 
 
-int addMap (char* str , int num,struct Buffer_Data *bd)
+int addMap (char* str , int* num,struct Buffer_Data *bd)
 {
-	hmap_insert(bd->hm,str,-1,(void*)(num+1));
+	hmap_insert(bd->hm,str,-1,num);
 	return 0;
 }
 
@@ -113,7 +113,7 @@ int delChain(int num,struct Buffer_Data *bd){
 	}
 }
 
-int  writeBackWithDel(int num,struct Buffer_Data *bd){
+RC  writeBackWithDel(int num,struct Buffer_Data *bd){
 	char* filename;
 	filename = bd->fname[num];
 	int intPageNum = bd->Buffer_Chain[(2 + OTHER) * num + 1];
@@ -136,7 +136,7 @@ int  writeBackWithDel(int num,struct Buffer_Data *bd){
 	return 0;
 }
 
-int  writeBack(int num,struct Buffer_Data *bd){
+RC  writeBack(int num,struct Buffer_Data *bd){
 	char* filename;
 	filename = bd->fname[num];
 	int intPageNum = bd->Buffer_Chain[(2 + OTHER) * num + 1];
