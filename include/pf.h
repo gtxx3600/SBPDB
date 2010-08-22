@@ -15,13 +15,14 @@
 
 typedef int PageNum;
 #define MAX_FILENAME   10
+#define PF_BUFFER_SIZE 40
 
 struct PF_PageHandle;
 
 typedef struct PF_FileHandle {
 
 	char filename[MAX_FILENAME];
-
+	int mapnum[PF_BUFFER_SIZE];
 	int if_open;
 	PageNum npage;
 	RC (*GetFirstPage)(struct PF_PageHandle *pageHandle,
@@ -33,7 +34,7 @@ typedef struct PF_FileHandle {
 	RC (*GetPrevPage)(PageNum current, struct PF_PageHandle *pageHandle,
 			struct PF_FileHandle *fileHandle);
 	RC (*GetThisPage)(PageNum pageNum, struct PF_PageHandle *pageHandle,
-			struct PF_FileHandle fileHandle); // Get a specific page
+			struct PF_FileHandle *fileHandle); // Get a specific page
 	RC (*AllocatePage)(struct PF_PageHandle *pageHandle,
 			struct PF_FileHandle *fileHandle);
 	RC (*SetIfOpen)(int bln, struct PF_FileHandle *fileHandle);

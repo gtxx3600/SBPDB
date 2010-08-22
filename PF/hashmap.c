@@ -106,8 +106,9 @@ void hmap_insert(hash_map hmap, const char* key, int key_len, void* value) {
 
 /* Search a hash map for value of given key string */
 void* hmap_search(hash_map hmap, const char *key) {
-	long h = hash_string(key, -1) % hmap->size;
+	size_t h = hash_string(key, -1) % (hmap->size);
 	listnode_t *pk = hmap->key[h];
+
 	listnode_t *pv = hmap->value[h];
 
 	while (pk) {
@@ -123,13 +124,10 @@ void* hmap_search(hash_map hmap, const char *key) {
 void hmap_delete(hash_map hmap, const char*key) {
 	long h = hash_string(key, -1) % hmap -> size;
 	listnode_t *pk = hmap->key[h];
-	listnode_t *prev = hmap->key[h];
 	listnode_t *pv = hmap->value[h];
-	while (pk){
-		if (strcmp(key, pk->str) == 0)
-		{
-			if(pk == hmap->key[h])
-			{
+	while (pk) {
+		if (strcmp(key, pk->str) == 0) {
+			if (pk == hmap->key[h]) {
 				hmap->key[h] = pk->next;
 			}
 		}

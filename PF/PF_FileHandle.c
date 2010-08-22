@@ -51,14 +51,15 @@ RC GetPrevPage(PageNum current, struct PF_PageHandle *pageHandle,
 RC GetThisPage(PageNum pageNum, struct PF_PageHandle *pageHandle,
 		struct PF_FileHandle *fileHandle) {
 	Buffer_Data *theBD = getBuffer_Data();
-	char strPageNum[10];
+	char strPageNum[20];
 	sprintf(strPageNum, "%d", pageNum);
 	strcat(strPageNum, fileHandle->filename);
 	int MRU = theBD->getMRU(theBD);
 	FILE *fio = fopen(fileHandle->filename, "r");
-
+	printf("MRU %d\n",MRU);
 	if (fileHandle->npage > pageNum && pageNum >= 0) {
 		if (theBD->getMap(strPageNum, theBD) == -1) {
+
 			fseek(fio, pageNum * ALL_PAGE_SIZE + PASS_BREAK, SEEK_SET);
 			if (MRU != -1) {
 				if (theBD->dirty[MRU] != 0) {
@@ -77,7 +78,9 @@ RC GetThisPage(PageNum pageNum, struct PF_PageHandle *pageHandle,
 				for (i = 0; i < MAX_FILENAME; i++) {
 					pageHandle->filename[i] = fileHandle->filename[i];
 				}
-				theBD->addMap(strPageNum, MRU, theBD);
+				fileHandle->mapnum[MRU]=MRU;
+				theBD->addMap(strPageNum, &(fileHandle->mapnum[MRU]), theBD);
+				printf("%d%s\n",theBD->getMap(strPageNum, theBD),strPageNum);
 				theBD->delChain(MRU, theBD);
 
 				return (NORMAL);
@@ -144,7 +147,7 @@ RC MarkDirty(PageNum pageNum, PF_FileHandle *fileHandle) {
 
 RC UnpinPage(PageNum pageNum, PF_FileHandle *fileHandle) {
 	Buffer_Data *theBD = getBuffer_Data();
-	char* strPageNum;
+	char strPageNum[20];
 	sprintf(strPageNum, "%d", pageNum);
 	strcat(strPageNum, fileHandle->filename);
 	int num = theBD->getMap(strPageNum, theBD);
@@ -159,7 +162,7 @@ RC UnpinPage(PageNum pageNum, PF_FileHandle *fileHandle) {
 
 RC ForcePages(PageNum pageNum, PF_FileHandle *fileHandle) {
 	Buffer_Data *theBD = getBuffer_Data();
-	char* strPageNum;
+	char strPageNum[10];
 	if (pageNum == -1) {
 		int i = 0;
 		for (i = 0; i < fileHandle->npage; i++) {

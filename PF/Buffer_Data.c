@@ -8,7 +8,8 @@
 #include "bufferdata.h"
 #include "hashmap.h"
 
-int addMap(char* str, int* num, struct Buffer_Data *bd) {
+Buffer_Data theBuffer;
+int addMap(char* str, int *num, struct Buffer_Data *bd) {
 	hmap_insert(bd->hm, str, -1, num);
 	return 0;
 }
@@ -19,8 +20,13 @@ int delMap(char* str, struct Buffer_Data *bd) {
 }
 
 int getMap(char* str, struct Buffer_Data *bd) {
-	hmap_search(bd->hm, str);
-	return 0;
+	int * ret = NULL;
+	if ((ret = (int *) hmap_search(bd->hm, str)) == NULL) {
+		return -1;
+	} else {
+		return *ret;
+	}
+	return -1;
 }
 int getMRU(struct Buffer_Data *bd) {
 	return (bd->MRU);
@@ -120,7 +126,7 @@ RC writeBackWithDel(int num, struct Buffer_Data *bd) {
 		printf("file not exist");
 		return 1;
 	} else {
-		fseek(outfile, intPageNum * ALL_PAGE_SIZE+ PASS_BREAK, SEEK_SET );
+		fseek(outfile, intPageNum * ALL_PAGE_SIZE + PASS_BREAK, SEEK_SET );
 		int suc = fwrite(&(bd->Buffer_Pool[getdata(num)]), PF_BUFFER_SIZE, 1,
 				outfile);
 		fclose(outfile);
@@ -170,7 +176,8 @@ RC initBuffer_Data(struct Buffer_Data *bd) {
 	bd->Buffer_Chain[PF_BUFFER_SIZE * (2 + OTHER) - 1] = -1;
 	bd->LRU = 0;
 	bd->MRU = PF_BUFFER_SIZE - 1;
-	hmap_create(&(bd->hm), PF_BUFFER_SIZE );
+	hmap_create(&(bd->hm), 40/*PF_BUFFER_SIZE*/);
+	hmmmm = bd->hm;
 	bd->writeBackWithDel = writeBackWithDel;
 	bd->addLRU = addLRU;
 	bd->addMRU = addMRU;
@@ -188,11 +195,9 @@ RC initBuffer_Data(struct Buffer_Data *bd) {
 	bd->writeBack = writeBack;
 	return (NORMAL);
 }
-Buffer_Data theBuffer;
 
 Buffer_Data *getBuffer_Data() {
-	if(theBuffer.init!=1)
-	{
+	if (theBuffer.init != 1) {
 		printf("init\n");
 		initBuffer_Data(&theBuffer);
 		theBuffer.init = 1;
