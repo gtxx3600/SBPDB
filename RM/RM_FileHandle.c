@@ -7,33 +7,33 @@
 
 #include "rm.h"
 
-RC RM_GetRec	(const RID *rid, RM_Record *rec)
+RC RM_GetRec	(RM_FileHandle* this, const RID *rid, RM_Record *rec)
 {
 	return NORMAL;
 }
-RC RM_InsertRec	(const char *pData, RID *rid)
+RC RM_InsertRec	(RM_FileHandle* this, const char *pData, RID *rid)
 {
 	return NORMAL;
 }
-RC RM_DeleteRec	(const RID *rid)
+RC RM_DeleteRec	(RM_FileHandle* this, const RID *rid)
 {
 	return NORMAL;
 }
-RC RM_UpdateRec	(const RM_Record *rec)
+RC RM_UpdateRec	(RM_FileHandle* this, const RM_Record *rec)
 {
 	return NORMAL;
 }
-RC RM_ForcePages	(PageNum pageNum)
+RC RM_ForcePages	(RM_FileHandle* this, PageNum pageNum)
 {
 	return NORMAL;
 }
 
-RC initRM_FileHandle(RM_FileHandle* rmfh)
+RC initRM_FileHandle(RM_FileHandle* this)
 {
-	rmfh->DeleteRec = RM_DeleteRec;
-	rmfh->ForcePages = RM_ForcePages;
-	rmfh->GetRec = RM_GetRec;
-	rmfh->InsertRec = RM_InsertRec;
-	rmfh->UpdateRec = RM_UpdateRec;
+	this->DeleteRec = RM_DeleteRec;
+	this->ForcePages = RM_ForcePages;
+	this->GetRec = RM_GetRec;
+	this->InsertRec = RM_InsertRec;
+	this->UpdateRec = RM_UpdateRec;
 	return NORMAL;
 }

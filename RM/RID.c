@@ -8,33 +8,33 @@
 #include "rid.h"
 
 
-RC RID_GetPageNum(RID* rid, PageNum *pageNum)
+RC RID_GetPageNum(RID* this, PageNum *pageNum)
 {
-	*pageNum = rid->pageNum;
+	*pageNum = this->pageNum;
 	return NORMAL;
 }
-RC RID_GetSlotNum(RID* rid, SlotNum *slotNum)
+RC RID_GetSlotNum(RID* this, SlotNum *slotNum)
 {
-	*slotNum = rid->slotNum;
+	*slotNum = this->slotNum;
 	return NORMAL;
 }
-RC RID_SetPageNum(RID* rid, PageNum pageNum)
+RC RID_SetPageNum(RID* this, PageNum pageNum)
 {
-	rid->pageNum = pageNum;
+	this->pageNum = pageNum;
 	return NORMAL;
 }
-RC RID_SetSlotNum(RID* rid, SlotNum slotNum)
+RC RID_SetSlotNum(RID* this, SlotNum slotNum)
 {
-	rid->slotNum = slotNum;
+	this->slotNum = slotNum;
 	return NORMAL;
 }
-RC initRID(RID * rid, PageNum pageNum, SlotNum slotNum)
+RC initRID(RID * this, PageNum pageNum, SlotNum slotNum)
 {
-	rid->pageNum = pageNum;
-	rid->slotNum = slotNum;
-	rid->GetPageNum = RID_GetPageNum;
-	rid->GetSlotNum = RID_GetSlotNum;
-	rid->SetPageNum = RID_SetPageNum;
-	rid->SetSlotNum = RID_SetSlotNum;
+	this->pageNum = pageNum;
+	this->slotNum = slotNum;
+	this->GetPageNum = RID_GetPageNum;
+	this->GetSlotNum = RID_GetSlotNum;
+	this->SetPageNum = RID_SetPageNum;
+	this->SetSlotNum = RID_SetSlotNum;
 	return NORMAL;
 }

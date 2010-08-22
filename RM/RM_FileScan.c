@@ -7,7 +7,8 @@
 
 #include "rm.h"
 
-RC RM_OpenScan(RM_FileHandle *fileHandle,
+RC RM_OpenScan(RM_FileScan *this,
+RM_FileHandle *fileHandle,
 AttrType      attrType,
 int           attrLength,
 int           attrOffset,
@@ -18,18 +19,18 @@ ClientHint    pinHint)
 	return NORMAL;
 }
 
-RC RM_GetNextRec(RM_Record *rec)
+RC RM_GetNextRec(RM_FileScan *this, RM_Record *rec)
 {
 	return NORMAL;
 }
-RC RM_CloseScan()
+RC RM_CloseScan(RM_FileScan *this)
 {
 	return NORMAL;
 }
-RC initRM_FileScan(RM_FileScan *rmfs)
+RC initRM_FileScan(RM_FileScan *this)
 {
-	rmfs->CloseScan = RM_CloseScan;
-	rmfs->GetNextRec = RM_GetNextRec;
-	rmfs->OpenScan = RM_OpenScan;
+	this->CloseScan = RM_CloseScan;
+	this->GetNextRec = RM_GetNextRec;
+	this->OpenScan = RM_OpenScan;
 	return NORMAL;
 }

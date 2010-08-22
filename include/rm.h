@@ -18,10 +18,10 @@ typedef struct RM_FileScan RM_FileScan;
 
 struct RM_Manager {
 	PF_Manager *pf_Manager;
-	RC (*CreateFile)(const char* fileName, int recordSize);
-	RC (*DestroyFile)(const char *fileName);
-	RC (*OpenFile)(const char *fileName, struct RM_FileHandle *fileHandle);
-	RC (*CloseFile)(struct RM_FileHandle *fileHandle);
+	RC (*CreateFile)(RM_Manager* rmm, const char* fileName, int recordSize);
+	RC (*DestroyFile)(RM_Manager* rmm, const char *fileName);
+	RC (*OpenFile)(RM_Manager* rmm, const char *fileName, RM_FileHandle *fileHandle);
+	RC (*CloseFile)(RM_Manager* rmm, RM_FileHandle *fileHandle);
 };
 
 RC initRM_Manager(RM_Manager* rmm, struct PF_Manager * pfm);
@@ -36,25 +36,29 @@ struct RM_FileHandle {
 	SlotNum slotNum;
 	PF_FileHandle *pf_FileHandle;
 
-	RC (*GetRec)		(const RID *rid, RM_Record *rec); 	// Get a record
-	RC (*InsertRec)	(const char *pData, RID *rid); 		// Insert a new record
-	RC (*DeleteRec)	(const RID *rid); 					// Delete a record
-	RC (*UpdateRec)	(const RM_Record *rec); 				// Update a record
-	RC (*ForcePages)	(PageNum pageNum); 					// Write dirty page(s)
+	RC (*GetRec)		(RM_FileHandle* rmfh, const RID *rid, RM_Record *rec); 	// Get a record
+	RC (*InsertRec)	(RM_FileHandle* rmfh, const char *pData, RID *rid); 		// Insert a new record
+	RC (*DeleteRec)	(RM_FileHandle* rmfh, const RID *rid); 					// Delete a record
+	RC (*UpdateRec)	(RM_FileHandle* rmfh, const RM_Record *rec); 				// Update a record
+	RC (*ForcePages)	(RM_FileHandle* rmfh, PageNum pageNum); 					// Write dirty page(s)
 };
 
 RC initRM_FileHandle(RM_FileHandle* rmfh);
 
 struct RM_Record {
 	RID rid;
-	RC (*GetData)	(char **pData);   // Set pData to point to
-	RC (*GetRid)	(RID *rid);       // Get the record id
+	char* data;
+	int recordSize;
+
+	RC (*GetData)	(RM_Record * rmr, char **pData);   // Set pData to point to
+	RC (*GetRid)	(RM_Record * rmr, RID *rid);       // Get the record id
 };
 
 RC initRM_Record(RM_Record * rmr);
 
 struct RM_FileScan{
-	RC (*OpenScan)     (RM_FileHandle *fileHandle,
+	RC (*OpenScan)     (RM_FileScan *rmfs,
+							RM_FileHandle *fileHandle,
 							AttrType      attrType,
 							int           attrLength,
 							int           attrOffset,
@@ -62,8 +66,8 @@ struct RM_FileScan{
 							void          *value,
 							ClientHint    pinHint);
 
-	RC (*GetNextRec)   (RM_Record *rec);
-	RC (*CloseScan)    ();
+	RC (*GetNextRec)   (RM_FileScan *rmfs, RM_Record *rec);
+	RC (*CloseScan)    (RM_FileScan *rmfs);
 };
 
 RC initRM_FileScan(RM_FileScan *rmfs);
