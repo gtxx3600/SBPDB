@@ -35,5 +35,5 @@ RC initRM_FileHandle(RM_FileHandle* rmfh)
 	rmfh->GetRec = RM_GetRec;
 	rmfh->InsertRec = RM_InsertRec;
 	rmfh->UpdateRec = RM_UpdateRec;
-
+	return NORMAL;
 }

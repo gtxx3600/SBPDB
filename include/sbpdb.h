@@ -1,17 +1,17 @@
 #ifndef SBPDB_H
 #define SBPDB_H
 
-enum AttrType {
+typedef enum AttrType {
 	INT, STRING, FLOAT
-};
+}AttrType;
 
-enum CompOp {
+typedef enum CompOp {
 	EQ_OP, LT_OP, GT_OP, LE_OP, GE_OP, NE_OP, NO_OP
-};
+}CompOp;
 
-enum ClientHint {
+typedef enum ClientHint {
 	NO_HINT
-};
+}ClientHint;
 
 typedef int RC;
 

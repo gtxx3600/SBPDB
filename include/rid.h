@@ -9,10 +9,16 @@
 #define RID_H_
 #include "pf.h"
 typedef int SlotNum;
-typedef struct RID{
-	RC (*GetPageNum) (PageNum *pageNum);  // Return page number
-	RC (*GetSlotNum) (SlotNum *slotNum);  // Return slot number
-}RID;
+typedef struct RID RID;
+struct RID{
+	PageNum pageNum;
+	SlotNum slotNum;
 
-RC initRID(PageNum pageNum, SlotNum slotNum);
+	RC (*GetPageNum) (RID* rid, PageNum *pageNum);
+	RC (*GetSlotNum) (RID* rid, SlotNum *slotNum);
+	RC (*SetPageNum) (RID* rid, PageNum pageNum);
+	RC (*SetSlotNum) (RID* rid, SlotNum slotNum);
+};
+
+RC initRID(RID* rid,PageNum pageNum, SlotNum slotNum);
 #endif /* RID_H_ */

@@ -14,6 +14,7 @@
 typedef struct RM_Manager RM_Manager;
 typedef struct RM_FileHandle RM_FileHandle;
 typedef struct RM_Record RM_Record;
+typedef struct RM_FileScan RM_FileScan;
 
 struct RM_Manager {
 	PF_Manager *pf_Manager;
@@ -51,4 +52,19 @@ struct RM_Record {
 };
 
 RC initRM_Record(RM_Record * rmr);
+
+struct RM_FileScan{
+	RC (*OpenScan)     (RM_FileHandle *fileHandle,
+							AttrType      attrType,
+							int           attrLength,
+							int           attrOffset,
+							CompOp        compOp,
+							void          *value,
+							ClientHint    pinHint);
+
+	RC (*GetNextRec)   (RM_Record *rec);
+	RC (*CloseScan)    ();
+};
+
+RC initRM_FileScan(RM_FileScan *rmfs);
 #endif /* RM_H_ */
