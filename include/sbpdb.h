@@ -45,6 +45,8 @@ typedef int RC;
 #define	QL_WRONGVALUETYPE		22
 #define	QL_WRONGATTRTYPE		23
 // Negative
+#define	DB_PARAM				-1
+
 #define	PF_NOMEM 				-15     // out of memory
 #define	PF_NOBUF				-16           // out of buffer space
 #define	PF_INCOMPLETEREAD		-17  // incomplete read of page from file

@@ -8,22 +8,47 @@
 
 RC RM_CreateFile(RM_Manager* this, const char* fileName, int recordSize)
 {
+	if(this == NULL||filename == NULL||recordSize < 0)
+	{
+		return DB_PARAM;
+	}
+	int ret = 0;
+	if ((ret = this->pf_Manager->) == NORMAL)
+	{
+
+	}
 	return NORMAL;
 }
 RC RM_DestroyFile(RM_Manager* this, const char *fileName)
 {
+	if(this == NULL||filename == NULL)
+	{
+		return DB_PARAM;
+	}
 	return NORMAL;
 }
 RC RM_OpenFile(RM_Manager* this, const char *fileName, struct RM_FileHandle *fileHandle)
 {
+	if(this == NULL||filename == NULL||fileHandle ==NULL)
+	{
+		return DB_PARAM;
+	}
 	return NORMAL;
 }
 RC RM_CloseFile(RM_Manager* this, struct RM_FileHandle *fileHandle)
 {
+	if(this == NULL||fileHandle ==NULL)
+	{
+		return DB_PARAM;
+	}
 	return NORMAL;
 }
 RC initRM_Manager(RM_Manager* this, struct PF_Manager * pfm)
 {
+	if(this == NULL||pfm ==NULL)
+	{
+		return DB_PARAM;
+	}
 	this->pf_Manager = pfm;
 	this->CreateFile = RM_CreateFile;
 	this->DestroyFile = RM_DestroyFile;
