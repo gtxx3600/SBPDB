@@ -16,70 +16,62 @@
 typedef int PageNum;
 #define MAX_FILENAME   10
 #define PF_BUFFER_SIZE 40
+typedef struct PF_Manager PF_Manager;
+typedef struct PF_PageHandle PF_PageHandle;
+typedef struct PF_FileHandle PF_FileHandle;
 
-struct PF_PageHandle;
-
-typedef struct PF_FileHandle {
+struct PF_FileHandle {
 
 	char filename[MAX_FILENAME];
 	int mapnum[PF_BUFFER_SIZE];
 	int if_open;
 	PageNum npage;
-	RC (*GetFirstPage)(struct PF_PageHandle *pageHandle,
-			struct PF_FileHandle *fileHandle); // Get the first page
-	RC (*GetLastPage)(struct PF_PageHandle *pageHandle,
-			struct PF_FileHandle *fileHandle); // Get the last page
-	RC (*GetNextPage)(PageNum current, struct PF_PageHandle *pageHandle,
-			struct PF_FileHandle *fileHandle); // Get the next page
-	RC (*GetPrevPage)(PageNum current, struct PF_PageHandle *pageHandle,
-			struct PF_FileHandle *fileHandle);
-	RC (*GetThisPage)(PageNum pageNum, struct PF_PageHandle *pageHandle,
-			struct PF_FileHandle *fileHandle); // Get a specific page
-	RC (*AllocatePage)(struct PF_PageHandle *pageHandle,
-			struct PF_FileHandle *fileHandle);
-	RC (*SetIfOpen)(int bln, struct PF_FileHandle *fileHandle);
-	RC (*GetIfOpen)(struct PF_FileHandle *fileHandle);
-	RC (*SetNpage)(PageNum pn, struct PF_FileHandle *fileHandle);
-	RC (*MarkDirty)(PageNum pageNum,struct PF_FileHandle *fileHandle);
-	RC (*UnpinPage)(PageNum pageNum,struct PF_FileHandle *fileHandle);
-	RC (*ForcePages)(PageNum pageNum,struct PF_FileHandle *fileHandle);
-	PageNum (*GetNpage)(struct PF_FileHandle *fileHandle);
-} PF_FileHandle;
-RC initPF_FileHandle( struct PF_FileHandle *fh);
+	RC (*GetFirstPage)(PF_FileHandle *this, PF_PageHandle *pageHandle); // Get the first page
+	RC (*GetLastPage)(PF_FileHandle *this, PF_PageHandle *pageHandle); // Get the last page
+	RC (*GetNextPage)(PF_FileHandle *this, PageNum current,
+			struct PF_PageHandle *pageHandle); // Get the next page
+	RC (*GetPrevPage)(PF_FileHandle *this, PageNum current,
+			struct PF_PageHandle *pageHandle);
+	RC (*GetThisPage)(PF_FileHandle *this, PageNum pageNum,
+			struct PF_PageHandle *pageHandle); // Get a specific page
+	RC (*AllocatePage)(PF_FileHandle *this, struct PF_PageHandle *pageHandle);
+	RC (*SetIfOpen)(PF_FileHandle *this, int bln);
+	RC (*GetIfOpen)(PF_FileHandle *this);
+	RC (*SetNpage)(PF_FileHandle *this, PageNum pn);
+	RC (*MarkDirty)(PF_FileHandle *this, PageNum pageNum);
+	RC (*UnpinPage)(PF_FileHandle *this, PageNum pageNum);
+	RC (*ForcePages)(PF_FileHandle *this, PageNum pageNum);
+	PageNum (*GetNpage)(PF_FileHandle *this);
+};
 
-//    void PF_FileHandle(struct PF_FileHandle *fileHandle);    // Copy constructor
+RC initPF_FileHandle(PF_FileHandle *this);
 
-
-//    RC DisposePage(PageNum pageNum);                   // Dispose of a page
-//    RC MarkDirty(PageNum pageNum) const;               // Mark a page as dirty
-//    RC UnpinPage(PageNum pageNum) const;               // Unpin a page
-//    RC ForcePages(PageNum pageNum = ALL_PAGES) const;  // Write dirty page(s)
-//                                                       //   to disk
 
 
 //pf manager//
-typedef struct PF_Manager {
-	RC (*CreateFile)(const char *fileName); // Create a new file
-	RC (*DestroyFile)(const char *fileName); // Destroy a file
-	RC (*OpenFile)(const char *fileName, struct PF_FileHandle *fileHandle);
+struct PF_Manager {
+	RC (*CreateFile)(PF_Manager *this, const char *fileName); // Create a new file
+	RC (*DestroyFile)(PF_Manager *this, const char *fileName); // Destroy a file
+	RC (*OpenFile)(PF_Manager *this, const char *fileName,
+			struct PF_FileHandle *fileHandle);
 
-	RC (*CloseFile)(struct PF_FileHandle *fileHandle); // Close a file
-	RC (*AllocateBlock)(char *buffer); // Allocate a new scratch page in buffer
-	RC (*DisposeBlock)(char *buffer); // Dispose of a scratch page
-} PF_Manager;
+	RC (*CloseFile)(PF_Manager *this, struct PF_FileHandle *fileHandle); // Close a file
+	RC (*AllocateBlock)(PF_Manager *this, char *buffer); // Allocate a new scratch page in buffer
+	RC (*DisposeBlock)(PF_Manager *this, char *buffer); // Dispose of a scratch page
+};
 
-RC initPF_Manager( struct PF_Manager * pfm);
+RC initPF_Manager(PF_Manager * this);
 
 //pf page handle//
-typedef struct PF_PageHandle {
+ struct PF_PageHandle {
 
 	char filename[MAX_FILENAME];
 	PageNum pagenum;
 	char *page;
 
-	RC (*GetData)(char **pData, struct PF_PageHandle *pageHandle);
-	RC (*GetPageNum)(PageNum *pageNum, struct PF_PageHandle *pageHandle);
-} PF_PageHandle;
-RC initPF_PageHandle( struct PF_PageHandle * ph);
+	RC (*GetData)( PF_PageHandle *this,char **pData);
+	RC (*GetPageNum)(PF_PageHandle *this,PageNum *pageNum);
+};
+RC initPF_PageHandle(PF_PageHandle * this);
 
 #endif /* PF_H_ */
