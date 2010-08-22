@@ -7,16 +7,16 @@
 
 #include "pf.h"
 #include "bufferdata.h"
-RC CreateFile (const char *fileName); // Create a new file
-RC DestroyFile (const char *fileName); // Destroy a file
-RC OpenFile (const char *fileName, struct PF_FileHandle *fileHandle);
+RC CreateFile (PF_Manager *this,const char *fileName ); // Create a new file
+RC DestroyFile (PF_Manager *this,const char *fileName); // Destroy a file
+RC OpenFile (PF_Manager *this,const char *fileName, struct PF_FileHandle *fileHandle);
 
-RC CloseFile (struct PF_FileHandle *fileHandle); // Close a file
-RC AllocateBlock (char *buffer); // Allocate a new scratch page in buffer
-RC DisposeBlock (char *buffer); // Dispose of a scratch page
+RC CloseFile (PF_Manager *this,struct PF_FileHandle *fileHandle); // Close a file
+RC AllocateBlock (PF_Manager *this,char *buffer); // Allocate a new scratch page in buffer
+RC DisposeBlock (PF_Manager *this,char *buffer); // Dispose of a scratch page
 
 
-RC CreateFile(const char *fileName) {
+RC CreateFile(PF_Manager *this,const char *fileName ) {
 	FILE *efile = fopen(fileName, "rb+");
 
 	if (efile == NULL) {
@@ -34,7 +34,7 @@ RC CreateFile(const char *fileName) {
 	}
 }
 
-RC DestroyFile(const char *fileName){
+RC DestroyFile(PF_Manager *this,const char *fileName){
 	if( remove(fileName) == -1 )
 	{
 
@@ -46,7 +46,7 @@ RC DestroyFile(const char *fileName){
 
 }
 
-RC OpenFile(const char *fileName, struct PF_FileHandle* fileHandle){
+RC OpenFile(PF_Manager *this,const char *fileName, struct PF_FileHandle* fileHandle){
 	FILE *infile = fopen(fileName, "rb+");
 	if ( infile == NULL){
 		printf("file not exist");
@@ -66,7 +66,7 @@ RC OpenFile(const char *fileName, struct PF_FileHandle* fileHandle){
 		for (; i < MAX_FILENAME; i++){
 			fileHandle->filename[i] = '\0';
 		}
-		fileHandle->SetIfOpen(1,fileHandle);
+		fileHandle->SetIfOpen(fileHandle,1);
 		PageNum pn;
 		char numc[4];
 		if(fread(numc, 4, 1, infile))
@@ -74,13 +74,13 @@ RC OpenFile(const char *fileName, struct PF_FileHandle* fileHandle){
 				//printf("a");
 		}
 		pn = atoi(numc);
-		fileHandle->SetNpage(pn,fileHandle);
+		fileHandle->SetNpage(fileHandle,pn);
 		fclose(infile);
 		return NORMAL;
 	}
 }
 
-RC CloseFile(struct PF_FileHandle *fileHandle){
+RC CloseFile(PF_Manager *this,struct PF_FileHandle *fileHandle){
 	if(fileHandle->GetIfOpen(fileHandle)==1){
 		return NORMAL;
 	}
@@ -89,23 +89,23 @@ RC CloseFile(struct PF_FileHandle *fileHandle){
 	}
 }
 
-RC AllocateBlock(char *buffer){
+RC AllocateBlock(PF_Manager *this,char *buffer){
 	return 0;
 }
 
-RC DisposeBlock(char *buffer)
+RC DisposeBlock(PF_Manager *this,char *buffer)
 {
 
 	return 0;
 }
 
-RC initPF_Manager( struct PF_Manager * pfm)
+RC initPF_Manager(PF_Manager *this)
 {
-	pfm->AllocateBlock = AllocateBlock;
-	pfm->CloseFile = CloseFile;
-	pfm->CreateFile = CreateFile;
-	pfm->DestroyFile = DestroyFile;
-	pfm->DisposeBlock = DisposeBlock;
-	pfm->OpenFile = OpenFile;
+	this->AllocateBlock = AllocateBlock;
+	this->CloseFile = CloseFile;
+	this->CreateFile = CreateFile;
+	this->DestroyFile = DestroyFile;
+	this->DisposeBlock = DisposeBlock;
+	this->OpenFile = OpenFile;
 	return NORMAL;
 }

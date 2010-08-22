@@ -7,65 +7,58 @@
 #include "pf.h"
 #include "bufferdata.h"
 
-RC GetFirstPage(struct PF_PageHandle *pageHandle,
-		struct PF_FileHandle *fileHandle); // Get the first page
-RC GetLastPage(struct PF_PageHandle *pageHandle,
-		struct PF_FileHandle *fileHandle); // Get the last page
-RC GetNextPage(PageNum current, struct PF_PageHandle *pageHandle,
-		struct PF_FileHandle *fileHandle); // Get the next page
-RC GetPrevPage(PageNum current, struct PF_PageHandle *pageHandle,
-		struct PF_FileHandle *fileHandle);
-RC GetThisPage(PageNum pageNum, struct PF_PageHandle *pageHandle,
-		struct PF_FileHandle *fileHandle); // Get a specific page
-RC AllocatePage(struct PF_PageHandle *pageHandle,
-		struct PF_FileHandle *fileHandle);
-RC SetIfOpen(int bln, struct PF_FileHandle *fileHandle);
-RC GetIfOpen(struct PF_FileHandle *fileHandle);
-RC SetNpage(PageNum pn, struct PF_FileHandle *fileHandle);
-PageNum GetNpage(struct PF_FileHandle *fileHandle);
-RC DisposePage(PageNum pageNum);
-RC MarkDirty(PageNum pageNum, PF_FileHandle *fileHandle);
-RC UnpinPage(PageNum pageNum, PF_FileHandle *fileHandle);
-RC ForcePages(PageNum pageNum, PF_FileHandle *fileHandle);
+RC GetFirstPage(PF_FileHandle *this, PF_PageHandle *pageHandle); // Get the first page
+RC GetLastPage(PF_FileHandle *this, PF_PageHandle *pageHandle); // Get the last page
+RC GetNextPage(PF_FileHandle *this, PageNum current,
+		struct PF_PageHandle *pageHandle); // Get the next page
+RC GetPrevPage(PF_FileHandle *this, PageNum current,
+		struct PF_PageHandle *pageHandle);
+RC GetThisPage(PF_FileHandle *this, PageNum pageNum,
+		struct PF_PageHandle *pageHandle); // Get a specific page
+RC AllocatePage(PF_FileHandle *this, struct PF_PageHandle *pageHandle);
+RC SetIfOpen(PF_FileHandle *this, int bln);
+RC GetIfOpen(PF_FileHandle *this);
+RC SetNpage(PF_FileHandle *this, PageNum pn);
+RC MarkDirty(PF_FileHandle *this, PageNum pageNum);
+RC UnpinPage(PF_FileHandle *this, PageNum pageNum);
+RC ForcePages(PF_FileHandle *this, PageNum pageNum);
+PageNum GetNpage(PF_FileHandle *this);
 
-RC GetFirstPage(struct PF_PageHandle *pageHandle,
-		struct PF_FileHandle *fileHandle) {
-	return GetThisPage(0, pageHandle, fileHandle);
+RC GetFirstPage(PF_FileHandle *this, PF_PageHandle *pageHandle) {
+	return GetThisPage(this, 0, pageHandle);
 }
 
-RC GetLastPage(struct PF_PageHandle *pageHandle,
-		struct PF_FileHandle *fileHandle) {
-	return GetThisPage(fileHandle->npage - 1, pageHandle, fileHandle);
+RC GetLastPage(PF_FileHandle *this, struct PF_PageHandle *pageHandle) {
+	return GetThisPage(this, this->npage - 1, pageHandle);
 }
 
-RC GetNextPage(PageNum current, struct PF_PageHandle *pageHandle,
-		struct PF_FileHandle *fileHandle) {
-	return GetThisPage(current + 1, pageHandle, fileHandle);
+RC GetNextPage(PF_FileHandle *this, PageNum current,
+		struct PF_PageHandle *pageHandle) {
+	return GetThisPage(this, current + 1, pageHandle);
 }
 
-RC GetPrevPage(PageNum current, struct PF_PageHandle *pageHandle,
-		struct PF_FileHandle *fileHandle) {
-	return GetThisPage(current - 1, pageHandle, fileHandle);
+RC GetPrevPage(PF_FileHandle *this, PageNum current,
+		struct PF_PageHandle *pageHandle) {
+	return GetThisPage(this, current - 1, pageHandle);
 }
 
-RC GetThisPage(PageNum pageNum, struct PF_PageHandle *pageHandle,
-		struct PF_FileHandle *fileHandle) {
+RC GetThisPage(PF_FileHandle *this, PageNum pageNum, PF_PageHandle *pageHandle) {
 	Buffer_Data *theBD = getBuffer_Data();
 	char strPageNum[20];
 	sprintf(strPageNum, "%d", pageNum);
-	strcat(strPageNum, fileHandle->filename);
+	strcat(strPageNum, this->filename);
 	int MRU = theBD->getMRU(theBD);
-	FILE *fio = fopen(fileHandle->filename, "r");
-	printf("MRU %d\n",MRU);
-	if (fileHandle->npage > pageNum && pageNum >= 0) {
+	FILE *fio = fopen(this->filename, "r");
+	printf("MRU %d\n", MRU);
+	if (this->npage > pageNum && pageNum >= 0) {
 		if (theBD->getMap(strPageNum, theBD) == -1) {
 
 			fseek(fio, pageNum * ALL_PAGE_SIZE + PASS_BREAK, SEEK_SET);
 			if (MRU != -1) {
-				if (theBD->dirty[MRU] != 0) {
+				if (theBD ->dirty[MRU] != 0) {
 					theBD->writeBackWithDel(MRU, theBD);
 				}
-				theBD->fname[MRU] = fileHandle->filename;
+				theBD->fname[MRU] = this->filename;
 				theBD->dirty[MRU] = 0;
 				char *c = &(theBD->Buffer_Pool[theBD->getdata(MRU)]);
 				fread(c, PF_PAGE_SIZE, 1, fio);
@@ -76,11 +69,11 @@ RC GetThisPage(PageNum pageNum, struct PF_PageHandle *pageHandle,
 				pageHandle->pagenum = pageNum;
 				int i = 0;
 				for (i = 0; i < MAX_FILENAME; i++) {
-					pageHandle->filename[i] = fileHandle->filename[i];
+					pageHandle->filename[i] = this->filename[i];
 				}
-				fileHandle->mapnum[MRU]=MRU;
-				theBD->addMap(strPageNum, &(fileHandle->mapnum[MRU]), theBD);
-				printf("%d%s\n",theBD->getMap(strPageNum, theBD),strPageNum);
+				this->mapnum[MRU] = MRU;
+				theBD->addMap(strPageNum, &(this->mapnum[MRU]), theBD);
+				printf("%d%s\n", theBD->getMap(strPageNum, theBD), strPageNum);
 				theBD->delChain(MRU, theBD);
 
 				return (NORMAL);
@@ -98,7 +91,7 @@ RC GetThisPage(PageNum pageNum, struct PF_PageHandle *pageHandle,
 				pageHandle->pagenum = pageNum;
 				int i = 0;
 				for (i = 0; i < MAX_FILENAME; i++) {
-					pageHandle->filename[i] = fileHandle->filename[i];
+					pageHandle->filename[i] = this->filename[i];
 				}
 			} else {
 				//还是在链中
@@ -106,7 +99,7 @@ RC GetThisPage(PageNum pageNum, struct PF_PageHandle *pageHandle,
 				pageHandle->pagenum = pageNum;
 				int i = 0;
 				for (i = 0; i < MAX_FILENAME; i++) {
-					pageHandle->filename[i] = fileHandle->filename[i];
+					pageHandle->filename[i] = this->filename[i];
 				}
 				//调整链表
 				theBD->delChain(num, theBD);
@@ -119,39 +112,37 @@ RC GetThisPage(PageNum pageNum, struct PF_PageHandle *pageHandle,
 
 }
 
-RC AllocatePage(struct PF_PageHandle *pageHandle,
-	struct PF_FileHandle *fileHandle) {
-	fileHandle->npage++;
-	FILE *wfile = fopen(fileHandle->filename, "rb+");
+RC AllocatePage(PF_FileHandle *this, struct PF_PageHandle *pageHandle) {
+	this->npage++;
+	FILE *wfile = fopen(this->filename, "rb+");
 	fseek(wfile, 0, SEEK_SET);
 	char strnpage[4];
-	sprintf(strnpage, "%d", fileHandle->npage);
+	sprintf(strnpage, "%d", this->npage);
 	fwrite(strnpage, 4, 1, wfile);
 	fclose(wfile);
-	return (GetThisPage(fileHandle->npage - 1, pageHandle, fileHandle));
+	return (GetThisPage(this, this->npage - 1, pageHandle));
 }
 
-RC DisposePage(PageNum pageNum) {
+RC DisposePage(PF_FileHandle *this, PageNum pageNum) {
 	return 0;
 }
 
-RC MarkDirty(PageNum pageNum, PF_FileHandle *fileHandle) {
+RC MarkDirty(PF_FileHandle *this, PageNum pageNum) {
 	Buffer_Data *theBD = getBuffer_Data();
 	char* strPageNum;
 	sprintf(strPageNum, "%d", pageNum);
-	strcat(strPageNum, fileHandle->filename);
+	strcat(strPageNum, this->filename);
 	int num = theBD->getMap(strPageNum, theBD);
 	theBD->dirty[num] = 1;
 	return (NORMAL);
 }
 
-RC UnpinPage(PageNum pageNum, PF_FileHandle *fileHandle) {
+RC UnpinPage(PF_FileHandle *this, PageNum pageNum) {
 	Buffer_Data *theBD = getBuffer_Data();
 	char strPageNum[20];
 	sprintf(strPageNum, "%d", pageNum);
-	strcat(strPageNum, fileHandle->filename);
+	strcat(strPageNum, this->filename);
 	int num = theBD->getMap(strPageNum, theBD);
-	printf("NUM IN BUFFER %d\n",num);
 	if (num >= 0) {
 		theBD->addLRU(num, theBD);
 		return (NORMAL);
@@ -160,14 +151,14 @@ RC UnpinPage(PageNum pageNum, PF_FileHandle *fileHandle) {
 	}
 }
 
-RC ForcePages(PageNum pageNum, PF_FileHandle *fileHandle) {
+RC ForcePages(PF_FileHandle *this, PageNum pageNum) {
 	Buffer_Data *theBD = getBuffer_Data();
 	char strPageNum[10];
 	if (pageNum == -1) {
 		int i = 0;
-		for (i = 0; i < fileHandle->npage; i++) {
+		for (i = 0; i < this->npage; i++) {
 			sprintf(strPageNum, "%d", pageNum);
-			strcat(strPageNum,fileHandle->filename);
+			strcat(strPageNum, this->filename);
 			int num = theBD->getMap(strPageNum, theBD);
 			if (theBD->dirty[num] == 1) {
 				theBD->writeBack(num, theBD);
@@ -176,7 +167,7 @@ RC ForcePages(PageNum pageNum, PF_FileHandle *fileHandle) {
 		}
 	} else {
 		sprintf(strPageNum, "%d", pageNum);
-		strcat( strPageNum,fileHandle->filename);
+		strcat(strPageNum, this->filename);
 		int num = theBD->getMap(strPageNum, theBD);
 		if (num >= 0) {
 			if (theBD->dirty[num] == 1) {
@@ -189,43 +180,43 @@ RC ForcePages(PageNum pageNum, PF_FileHandle *fileHandle) {
 	}
 	return (NORMAL);
 }
-RC SetIfOpen(int bln, struct PF_FileHandle *fileHandle) {
-	fileHandle->if_open = bln;
+RC SetIfOpen(PF_FileHandle *this, int bln) {
+	this->if_open = bln;
 	return NORMAL;
 }
 
-RC GetIfOpen(struct PF_FileHandle *fileHandle) {
-	return (fileHandle->if_open);
+RC GetIfOpen(PF_FileHandle *this) {
+	return (this->if_open);
 }
 
-RC SetNpage(PageNum pn, struct PF_FileHandle *fileHandle) {
-	fileHandle->npage = pn;
+RC SetNpage(PF_FileHandle *this, PageNum pn) {
+	this->npage = pn;
 	return NORMAL;
 }
 
-PageNum GetNpage(struct PF_FileHandle *fileHandle) {
-	return (fileHandle->npage);
+PageNum GetNpage(PF_FileHandle *this) {
+	return (this->npage);
 }
 
-RC initPF_FileHandle(struct PF_FileHandle * fh) {
-	fh->GetThisPage = GetThisPage;
-	fh->AllocatePage = AllocatePage;
-	fh->GetFirstPage = GetFirstPage;
-	fh->GetIfOpen = GetIfOpen;
-	fh->GetLastPage = GetLastPage;
-	fh->GetNextPage = GetNextPage;
-	fh->GetNpage = GetNpage;
-	fh->GetPrevPage = GetPrevPage;
-	fh->ForcePages = ForcePages;
-	fh->MarkDirty = MarkDirty;
-	fh->SetNpage = SetNpage;
-	fh->SetIfOpen = SetIfOpen;
-	fh->UnpinPage = UnpinPage;
-	fh->if_open = 0;
-	fh->npage = 0;
+RC initPF_FileHandle(PF_FileHandle *this) {
+	this->GetThisPage = GetThisPage;
+	this->AllocatePage = AllocatePage;
+	this->GetFirstPage = GetFirstPage;
+	this->GetIfOpen = GetIfOpen;
+	this->GetLastPage = GetLastPage;
+	this->GetNextPage = GetNextPage;
+	this->GetNpage = GetNpage;
+	this->GetPrevPage = GetPrevPage;
+	this->ForcePages = ForcePages;
+	this->MarkDirty = MarkDirty;
+	this->SetNpage = SetNpage;
+	this->SetIfOpen = SetIfOpen;
+	this->UnpinPage = UnpinPage;
+	this->if_open = 0;
+	this->npage = 0;
 	int i = 0;
 	for (i = 0; i < MAX_FILENAME; i++) {
-		fh->filename[i] = '\0';
+		this->filename[i] = '\0';
 	}
 	return NORMAL;
 }
