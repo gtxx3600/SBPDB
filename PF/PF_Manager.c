@@ -29,7 +29,7 @@ RC CreateFile(const char *fileName) {
 		return NORMAL;//normal return
 	} else {
 		fclose(efile);
-		printf("file exist");
+		printf("file exist\n");
 		return (PF_EXIST);//file exist
 	}
 }
@@ -97,4 +97,15 @@ RC DisposeBlock(char *buffer)
 {
 
 	return 0;
+}
+
+RC initPF_Manager( struct PF_Manager * pfm)
+{
+	pfm->AllocateBlock = AllocateBlock;
+	pfm->CloseFile = CloseFile;
+	pfm->CreateFile = CreateFile;
+	pfm->DestroyFile = DestroyFile;
+	pfm->DisposeBlock = DisposeBlock;
+	pfm->OpenFile = OpenFile;
+	return NORMAL;
 }
