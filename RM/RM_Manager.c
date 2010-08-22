@@ -8,16 +8,16 @@
 
 RC RM_CreateFile(RM_Manager* this, const char* fileName, int recordSize)
 {
-	if(this == NULL||filename == NULL||recordSize < 0)
+	if(this == NULL||filename == NULL||recordSize <= 0)
 	{
 		return DB_PARAM;
 	}
 	int ret = 0;
-	if ((ret = this->pf_Manager->) == NORMAL)
+	if ((ret = this->pf_Manager->CreateFile(this->pf_Manager, fileName)) == NORMAL)
 	{
 
 	}
-	return NORMAL;
+	return ret;
 }
 RC RM_DestroyFile(RM_Manager* this, const char *fileName)
 {

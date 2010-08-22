@@ -1,6 +1,6 @@
 #ifndef SBPDB_H
 #define SBPDB_H
-
+#define ALL_PAGES					-1
 typedef enum AttrType {
 	INT, STRING, FLOAT
 }AttrType;
