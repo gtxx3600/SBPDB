@@ -8,7 +8,7 @@
 
 RC RM_CreateFile(RM_Manager* this, const char* fileName, int recordSize)
 {
-	if(this == NULL||filename == NULL||recordSize <= 0)
+	if(this == NULL||fileName == NULL||recordSize <= 0)
 	{
 		return DB_PARAM;
 	}
@@ -21,7 +21,7 @@ RC RM_CreateFile(RM_Manager* this, const char* fileName, int recordSize)
 }
 RC RM_DestroyFile(RM_Manager* this, const char *fileName)
 {
-	if(this == NULL||filename == NULL)
+	if(this == NULL||fileName == NULL)
 	{
 		return DB_PARAM;
 	}
@@ -29,7 +29,7 @@ RC RM_DestroyFile(RM_Manager* this, const char *fileName)
 }
 RC RM_OpenFile(RM_Manager* this, const char *fileName, struct RM_FileHandle *fileHandle)
 {
-	if(this == NULL||filename == NULL||fileHandle ==NULL)
+	if(this == NULL||fileName == NULL||fileHandle ==NULL)
 	{
 		return DB_PARAM;
 	}

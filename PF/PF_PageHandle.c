@@ -6,6 +6,7 @@
  */
 
 #include "pf.h"
+#include <string.h>
 RC PF_GetData(PF_PageHandle *this,char **pData);
 RC PF_GetPageNum(PF_PageHandle *this,PageNum *pageNum);
 
@@ -20,14 +21,12 @@ RC PF_GetPageNum(PF_PageHandle *this,PageNum *pageNum){
 	return NORMAL;
 }
 
-RC initPF_PageHandle(struct PF_PageHandle * this) {
+RC initPF_PageHandle(struct PF_PageHandle *this) {
 	this->GetData = PF_GetData;
 	this->GetPageNum = PF_GetPageNum;
 	this->page = (char*) (malloc(4096));
 	int i =0;
-	for (i = 0; i < MAX_FILENAME; i++) {
-			this->filename[i] = '\0';
-	}
+	bzero(this->filename,MAX_FILENAME);
 	this->pagenum = 0;
 	return NORMAL;
 }

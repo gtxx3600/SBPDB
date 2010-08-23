@@ -126,7 +126,7 @@ RC writeBackWithDel(int num, struct Buffer_Data *bd) {
 		printf("file not exist");
 		return 1;
 	} else {
-		fseek(outfile, intPageNum * ALL_PAGE_SIZE + PASS_BREAK, SEEK_SET );
+		fseek(outfile, (intPageNum+1) * ALL_PAGE_SIZE , SEEK_SET );
 		int suc = fwrite(&(bd->Buffer_Pool[getdata(num)]), PF_BUFFER_SIZE, 1,
 				outfile);
 		fclose(outfile);
@@ -148,7 +148,7 @@ RC writeBack(int num, struct Buffer_Data *bd) {
 		printf("file not exist");
 		return 1;
 	} else {
-		fseek(outfile, intPageNum * ALL_PAGE_SIZE + PASS_BREAK, SEEK_SET );
+		fseek(outfile, (intPageNum+1) * ALL_PAGE_SIZE , SEEK_SET );
 		int suc = fwrite(&(bd->Buffer_Pool[getdata(num)]), PF_BUFFER_SIZE, 1,
 				outfile);
 		fclose(outfile);

@@ -22,9 +22,11 @@ RC CreateFile(PF_Manager *this,const char *fileName ) {
 	if (efile == NULL) {
 		PageNum num = 0;
 		FILE *cfile = fopen(fileName, "wb");
-		char numc[4];
-		sprintf(numc, "%d", num);
-		fwrite(numc, 4, 1, cfile);
+		PF_PageHandle pf;
+		initPF_PageHandle(&pf);
+		pf.pagenum = 0;
+		memcpy(pf.page,&num,4);
+		fwrite(pf.page, 4096, 1, cfile);
 		fclose(cfile);
 		return NORMAL;//normal return
 	} else {
@@ -54,26 +56,18 @@ RC OpenFile(PF_Manager *this,const char *fileName, struct PF_FileHandle* fileHan
 	}
 	else{
 //		Buffer_Data *theBD = getBuffer_Data();
-		int i;
-		for (i = 0; i < MAX_FILENAME; i++){
-			if (fileName[i] == '\0') break;
-			else
-			{
-				fileHandle->filename[i] = fileName[i];
-				//printf("%c",fileName[i]);
-			}
-		}
-		for (; i < MAX_FILENAME; i++){
-			fileHandle->filename[i] = '\0';
-		}
+
+		if(strlen(fileName) < MAX_FILENAME)
+			strcpy(fileHandle->filename, fileName);
+		else
+			return DB_PARAM;
 		fileHandle->SetIfOpen(fileHandle,1);
 		PageNum pn;
-		char numc[4];
-		if(fread(numc, 4, 1, infile))
+		if(fread(&pn, 4, 1, infile))
 		{
 				//printf("a");
 		}
-		pn = atoi(numc);
+
 		fileHandle->SetNpage(fileHandle,pn);
 		fclose(infile);
 		return NORMAL;
