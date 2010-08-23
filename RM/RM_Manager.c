@@ -4,18 +4,35 @@
  *  Created on: 2010-8-21
  *      Author: hhf
  */
-#include "rm.h"
+#include "rm.h"a
+#include <string.h>
+RC initHeadPage(char* pData, RecordSize recordSize)
+{
+	int slotSize = (ALL_PAGE_SIZE - sizeof(PageNum) - sizeof(RecordSize)) / (recordSize + 1.0/8);
+	printf("slotSize:%d,recordSize:%d\n",slotSize,recordSize);
+	int bitmapSize = slotSize/8 + slotSize % 8 ? 1 : 0;
+	*((PageNum*)pData) = 0;
+	*((RecordSize*)(&pData[sizeof(PageNum)])) = recordSize;
+	bzero(&pData[sizeof(RecordSize) + sizeof(PageNum)],bitmapSize);
 
+}
 RC RM_CreateFile(RM_Manager* this, const char* fileName, int recordSize)
 {
-	if(this == NULL||filename == NULL||recordSize <= 0)
+	if(this == NULL||filename == NULL||recordSize <= 0||recordSize > ALL_PAGE_SIZE - sizeof(int) - sizeof(char))
 	{
 		return DB_PARAM;
 	}
 	int ret = 0;
 	if ((ret = this->pf_Manager->CreateFile(this->pf_Manager, fileName)) == NORMAL)
 	{
+		PF_FileHandle fileHandle;
+		PF_PageHandle pageHandle;
+		char* pData;
+		PageNum pageNum;
 
+		pf_Manager->OpenFile(pf_Manager, fileName, &fileHandle);
+		fileHandle.AllocatePage(&pageHandle);
+		pageHandle.GetData(&pData);
 	}
 	return ret;
 }

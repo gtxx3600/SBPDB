@@ -15,7 +15,7 @@ typedef struct RM_Manager RM_Manager;
 typedef struct RM_FileHandle RM_FileHandle;
 typedef struct RM_Record RM_Record;
 typedef struct RM_FileScan RM_FileScan;
-
+typedef int RecordSize;
 struct RM_Manager {
 	PF_Manager *pf_Manager;
 	RC (*CreateFile)(RM_Manager* rmm, const char* fileName, int recordSize);
