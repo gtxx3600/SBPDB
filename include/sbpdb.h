@@ -1,6 +1,12 @@
 #ifndef SBPDB_H
 #define SBPDB_H
 #define ALL_PAGES					-1
+#define  NIL  -2
+#define  ALL_PAGES  -1
+#define PF_PAGE_SIZE  4092
+#define OTHER  1
+#define PASS_BREAK  4
+#define ALL_PAGE_SIZE  4096
 typedef enum AttrType {
 	INT, STRING, FLOAT
 }AttrType;

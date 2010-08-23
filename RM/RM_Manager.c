@@ -4,7 +4,7 @@
  *  Created on: 2010-8-21
  *      Author: hhf
  */
-#include "rm.h"a
+#include "rm.h"
 #include <string.h>
 RC initHeadPage(char* pData, RecordSize recordSize)
 {
@@ -14,11 +14,11 @@ RC initHeadPage(char* pData, RecordSize recordSize)
 	*((PageNum*)pData) = 0;
 	*((RecordSize*)(&pData[sizeof(PageNum)])) = recordSize;
 	bzero(&pData[sizeof(RecordSize) + sizeof(PageNum)],bitmapSize);
-
+	return NORMAL;
 }
 RC RM_CreateFile(RM_Manager* this, const char* fileName, int recordSize)
 {
-	if(this == NULL||filename == NULL||recordSize <= 0||recordSize > ALL_PAGE_SIZE - sizeof(int) - sizeof(char))
+	if(this == NULL||fileName == NULL||recordSize <= 0||recordSize > ALL_PAGE_SIZE - sizeof(int) - sizeof(char))
 	{
 		return DB_PARAM;
 	}
@@ -30,15 +30,15 @@ RC RM_CreateFile(RM_Manager* this, const char* fileName, int recordSize)
 		char* pData;
 		PageNum pageNum;
 
-		pf_Manager->OpenFile(pf_Manager, fileName, &fileHandle);
-		fileHandle.AllocatePage(&pageHandle);
-		pageHandle.GetData(&pData);
+		this->pf_Manager->OpenFile(this->pf_Manager, fileName, &fileHandle);
+		fileHandle.AllocatePage(&fileHandle, &pageHandle);
+		pageHandle.GetData(&pageHandle, &pData);
 	}
 	return ret;
 }
 RC RM_DestroyFile(RM_Manager* this, const char *fileName)
 {
-	if(this == NULL||filename == NULL)
+	if(this == NULL||fileName == NULL)
 	{
 		return DB_PARAM;
 	}
@@ -46,7 +46,7 @@ RC RM_DestroyFile(RM_Manager* this, const char *fileName)
 }
 RC RM_OpenFile(RM_Manager* this, const char *fileName, struct RM_FileHandle *fileHandle)
 {
-	if(this == NULL||filename == NULL||fileHandle ==NULL)
+	if(this == NULL||fileName == NULL||fileHandle ==NULL)
 	{
 		return DB_PARAM;
 	}

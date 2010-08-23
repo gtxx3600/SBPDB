@@ -14,12 +14,7 @@
 #include "hashmap.h"
 #include "sbpdb.h"
 #include "pf.h"
-#define  NIL  -2
-#define  ALL_PAGES  -1
-#define PF_PAGE_SIZE  4092
-#define OTHER  1
-#define PASS_BREAK  4
-#define ALL_PAGE_SIZE  4096
+
 hash_map hmmmm;
 typedef struct Buffer_Data {
 	char Buffer_Pool[PF_BUFFER_SIZE * (ALL_PAGE_SIZE)];

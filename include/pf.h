@@ -21,17 +21,15 @@ typedef struct PF_PageHandle PF_PageHandle;
 typedef struct PF_FileHandle PF_FileHandle;
 
 struct PF_FileHandle {
-
+	int currentPage;
 	char filename[MAX_FILENAME];
 	int mapnum[PF_BUFFER_SIZE];
 	int if_open;
 	PageNum npage;
 	RC (*GetFirstPage)(PF_FileHandle *this, PF_PageHandle *pageHandle); // Get the first page
 	RC (*GetLastPage)(PF_FileHandle *this, PF_PageHandle *pageHandle); // Get the last page
-	RC (*GetNextPage)(PF_FileHandle *this, PageNum current,
-			struct PF_PageHandle *pageHandle); // Get the next page
-	RC (*GetPrevPage)(PF_FileHandle *this, PageNum current,
-			struct PF_PageHandle *pageHandle);
+	RC (*GetNextPage)(PF_FileHandle *this, struct PF_PageHandle *pageHandle); // Get the next page
+	RC (*GetPrevPage)(PF_FileHandle *this, struct PF_PageHandle *pageHandle);
 	RC (*GetThisPage)(PF_FileHandle *this, PageNum pageNum,
 			struct PF_PageHandle *pageHandle); // Get a specific page
 	RC (*AllocatePage)(PF_FileHandle *this, struct PF_PageHandle *pageHandle);
@@ -45,8 +43,6 @@ struct PF_FileHandle {
 };
 
 RC initPF_FileHandle(PF_FileHandle *this);
-
-
 
 //pf manager//
 struct PF_Manager {
@@ -63,14 +59,14 @@ struct PF_Manager {
 RC initPF_Manager(PF_Manager * this);
 
 //pf page handle//
- struct PF_PageHandle {
+struct PF_PageHandle {
 
 	char filename[MAX_FILENAME];
 	PageNum pagenum;
 	char *page;
 
-	RC (*GetData)( PF_PageHandle *this,char **pData);
-	RC (*GetPageNum)(PF_PageHandle *this,PageNum *pageNum);
+	RC (*GetData)(PF_PageHandle *this, char **pData);
+	RC (*GetPageNum)(PF_PageHandle *this, PageNum *pageNum);
 };
 RC initPF_PageHandle(PF_PageHandle * this);
 
