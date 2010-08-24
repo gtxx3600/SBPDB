@@ -1,0 +1,1184 @@
+Terminals unused in grammar
+
+   UPDATE
+
+
+Grammar
+
+    0 $accept: commands $end
+
+    1 commands: /* empty */
+    2         | commands command
+
+    3 command: create_table
+    4        | create_view
+    5        | drop_table
+    6        | drop_view
+    7        | select
+    8        | insert
+    9        | delete
+   10        | help
+   11        | exit
+
+   12 exit: EXIT SEMICOLON
+
+   13 help: HELP SEMICOLON
+
+   14 create_table: CREATE TABLE ID LBRACE attr_def_list RBRACE SEMICOLON
+
+   15 drop_table: DROP TABLE ID SEMICOLON
+
+   16 create_view: CREATE VIEW ID AS query SEMICOLON
+
+   17 drop_view: DROP VIEW ID SEMICOLON
+
+   18 attr_def_list: attr_def
+   19              | attr_def_list COMMA attr_def
+
+   20 attr_def: ID type
+
+   21 type: INT_T
+   22     | STRING_T
+   23     | FLOAT_T
+
+   24 insert: INSERT INTO ID VALUES LBRACE value_list RBRACE SEMICOLON
+
+   25 value_list: value
+   26           | value_list COMMA value
+
+   27 value: NUMBER
+   28      | STRING_V
+   29      | NUMBER DOT NUMBER
+
+   30 delete: DELETE FROM ID WHERE condition SEMICOLON
+   31       | DELETE FROM ID SEMICOLON
+   32       | DELETE STAR FROM ID SEMICOLON
+
+   33 query: SELECT select_attr FROM rel_list WHERE condition
+
+   34 select: query SEMICOLON
+
+   35 select_attr: STAR
+   36            | attr_list
+
+   37 condition: av compOp av
+   38          | avlist IN LBRACE query RBRACE
+   39          | condition AND condition
+   40          | condition OR condition
+   41          | NOT condition
+   42          | LBRACE condition RBRACE
+
+   43 compOp: EQ
+   44       | LT
+   45       | GT
+   46       | LE
+   47       | GE
+   48       | NE
+
+   49 av: attr
+   50   | value
+
+   51 avlist: av
+   52       | avlist COMMA av
+
+   53 attr: ID
+   54     | ID DOT ID
+
+   55 attr_list: attr
+   56          | attr_list COMMA attr
+
+   57 rel_list: ID
+   58         | rel_list COMMA ID
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+error (256)
+SEMICOLON (258) 12 13 14 15 16 17 24 30 31 32 34
+CREATE (259) 14 16
+DROP (260) 15 17
+TABLE (261) 14 15
+VIEW (262) 16 17
+SELECT (263) 33
+INSERT (264) 24
+DELETE (265) 30 31 32
+UPDATE (266)
+LBRACE (267) 14 24 38 42
+RBRACE (268) 14 24 38 42
+COMMA (269) 19 26 52 56 58
+INT_T (270) 21
+STRING_T (271) 22
+FLOAT_T (272) 23
+HELP (273) 13
+EXIT (274) 12
+DOT (275) 29 54
+INTO (276) 24
+VALUES (277) 24
+STAR (278) 32 35
+FROM (279) 30 31 32 33
+WHERE (280) 30 33
+AND (281) 39
+OR (282) 40
+NOT (283) 41
+AS (284) 16
+EQ (285) 43
+LT (286) 44
+GT (287) 45
+LE (288) 46
+GE (289) 47
+NE (290) 48
+IN (291) 38
+NUMBER (292) 27 29
+ID (293) 14 15 16 17 20 24 30 31 32 53 54 57 58
+STRING_V (294) 28
+QUERY (295)
+
+
+Nonterminals, with rules where they appear
+
+$accept (41)
+    on left: 0
+commands (42)
+    on left: 1 2, on right: 0 2
+command (43)
+    on left: 3 4 5 6 7 8 9 10 11, on right: 2
+exit (44)
+    on left: 12, on right: 11
+help (45)
+    on left: 13, on right: 10
+create_table (46)
+    on left: 14, on right: 3
+drop_table (47)
+    on left: 15, on right: 5
+create_view (48)
+    on left: 16, on right: 4
+drop_view (49)
+    on left: 17, on right: 6
+attr_def_list (50)
+    on left: 18 19, on right: 14 19
+attr_def (51)
+    on left: 20, on right: 18 19
+type (52)
+    on left: 21 22 23, on right: 20
+insert (53)
+    on left: 24, on right: 8
+value_list (54)
+    on left: 25 26, on right: 24 26
+value (55)
+    on left: 27 28 29, on right: 25 26 50
+delete (56)
+    on left: 30 31 32, on right: 9
+query (57)
+    on left: 33, on right: 16 34 38
+select (58)
+    on left: 34, on right: 7
+select_attr (59)
+    on left: 35 36, on right: 33
+condition (60)
+    on left: 37 38 39 40 41 42, on right: 30 33 39 40 41 42
+compOp (61)
+    on left: 43 44 45 46 47 48, on right: 37
+av (62)
+    on left: 49 50, on right: 37 51 52
+avlist (63)
+    on left: 51 52, on right: 38 52
+attr (64)
+    on left: 53 54, on right: 49 55 56
+attr_list (65)
+    on left: 55 56, on right: 36 56
+rel_list (66)
+    on left: 57 58, on right: 33 58
+
+
+state 0
+
+    0 $accept: . commands $end
+
+    $default  reduce using rule 1 (commands)
+
+    commands  go to state 1
+
+
+state 1
+
+    0 $accept: commands . $end
+    2 commands: commands . command
+
+    $end    shift, and go to state 2
+    CREATE  shift, and go to state 3
+    DROP    shift, and go to state 4
+    SELECT  shift, and go to state 5
+    INSERT  shift, and go to state 6
+    DELETE  shift, and go to state 7
+    HELP    shift, and go to state 8
+    EXIT    shift, and go to state 9
+
+    command       go to state 10
+    exit          go to state 11
+    help          go to state 12
+    create_table  go to state 13
+    drop_table    go to state 14
+    create_view   go to state 15
+    drop_view     go to state 16
+    insert        go to state 17
+    delete        go to state 18
+    query         go to state 19
+    select        go to state 20
+
+
+state 2
+
+    0 $accept: commands $end .
+
+    $default  accept
+
+
+state 3
+
+   14 create_table: CREATE . TABLE ID LBRACE attr_def_list RBRACE SEMICOLON
+   16 create_view: CREATE . VIEW ID AS query SEMICOLON
+
+    TABLE  shift, and go to state 21
+    VIEW   shift, and go to state 22
+
+
+state 4
+
+   15 drop_table: DROP . TABLE ID SEMICOLON
+   17 drop_view: DROP . VIEW ID SEMICOLON
+
+    TABLE  shift, and go to state 23
+    VIEW   shift, and go to state 24
+
+
+state 5
+
+   33 query: SELECT . select_attr FROM rel_list WHERE condition
+
+    STAR  shift, and go to state 25
+    ID    shift, and go to state 26
+
+    select_attr  go to state 27
+    attr         go to state 28
+    attr_list    go to state 29
+
+
+state 6
+
+   24 insert: INSERT . INTO ID VALUES LBRACE value_list RBRACE SEMICOLON
+
+    INTO  shift, and go to state 30
+
+
+state 7
+
+   30 delete: DELETE . FROM ID WHERE condition SEMICOLON
+   31       | DELETE . FROM ID SEMICOLON
+   32       | DELETE . STAR FROM ID SEMICOLON
+
+    STAR  shift, and go to state 31
+    FROM  shift, and go to state 32
+
+
+state 8
+
+   13 help: HELP . SEMICOLON
+
+    SEMICOLON  shift, and go to state 33
+
+
+state 9
+
+   12 exit: EXIT . SEMICOLON
+
+    SEMICOLON  shift, and go to state 34
+
+
+state 10
+
+    2 commands: commands command .
+
+    $default  reduce using rule 2 (commands)
+
+
+state 11
+
+   11 command: exit .
+
+    $default  reduce using rule 11 (command)
+
+
+state 12
+
+   10 command: help .
+
+    $default  reduce using rule 10 (command)
+
+
+state 13
+
+    3 command: create_table .
+
+    $default  reduce using rule 3 (command)
+
+
+state 14
+
+    5 command: drop_table .
+
+    $default  reduce using rule 5 (command)
+
+
+state 15
+
+    4 command: create_view .
+
+    $default  reduce using rule 4 (command)
+
+
+state 16
+
+    6 command: drop_view .
+
+    $default  reduce using rule 6 (command)
+
+
+state 17
+
+    8 command: insert .
+
+    $default  reduce using rule 8 (command)
+
+
+state 18
+
+    9 command: delete .
+
+    $default  reduce using rule 9 (command)
+
+
+state 19
+
+   34 select: query . SEMICOLON
+
+    SEMICOLON  shift, and go to state 35
+
+
+state 20
+
+    7 command: select .
+
+    $default  reduce using rule 7 (command)
+
+
+state 21
+
+   14 create_table: CREATE TABLE . ID LBRACE attr_def_list RBRACE SEMICOLON
+
+    ID  shift, and go to state 36
+
+
+state 22
+
+   16 create_view: CREATE VIEW . ID AS query SEMICOLON
+
+    ID  shift, and go to state 37
+
+
+state 23
+
+   15 drop_table: DROP TABLE . ID SEMICOLON
+
+    ID  shift, and go to state 38
+
+
+state 24
+
+   17 drop_view: DROP VIEW . ID SEMICOLON
+
+    ID  shift, and go to state 39
+
+
+state 25
+
+   35 select_attr: STAR .
+
+    $default  reduce using rule 35 (select_attr)
+
+
+state 26
+
+   53 attr: ID .
+   54     | ID . DOT ID
+
+    DOT  shift, and go to state 40
+
+    $default  reduce using rule 53 (attr)
+
+
+state 27
+
+   33 query: SELECT select_attr . FROM rel_list WHERE condition
+
+    FROM  shift, and go to state 41
+
+
+state 28
+
+   55 attr_list: attr .
+
+    $default  reduce using rule 55 (attr_list)
+
+
+state 29
+
+   36 select_attr: attr_list .
+   56 attr_list: attr_list . COMMA attr
+
+    COMMA  shift, and go to state 42
+
+    $default  reduce using rule 36 (select_attr)
+
+
+state 30
+
+   24 insert: INSERT INTO . ID VALUES LBRACE value_list RBRACE SEMICOLON
+
+    ID  shift, and go to state 43
+
+
+state 31
+
+   32 delete: DELETE STAR . FROM ID SEMICOLON
+
+    FROM  shift, and go to state 44
+
+
+state 32
+
+   30 delete: DELETE FROM . ID WHERE condition SEMICOLON
+   31       | DELETE FROM . ID SEMICOLON
+
+    ID  shift, and go to state 45
+
+
+state 33
+
+   13 help: HELP SEMICOLON .
+
+    $default  reduce using rule 13 (help)
+
+
+state 34
+
+   12 exit: EXIT SEMICOLON .
+
+    $default  reduce using rule 12 (exit)
+
+
+state 35
+
+   34 select: query SEMICOLON .
+
+    $default  reduce using rule 34 (select)
+
+
+state 36
+
+   14 create_table: CREATE TABLE ID . LBRACE attr_def_list RBRACE SEMICOLON
+
+    LBRACE  shift, and go to state 46
+
+
+state 37
+
+   16 create_view: CREATE VIEW ID . AS query SEMICOLON
+
+    AS  shift, and go to state 47
+
+
+state 38
+
+   15 drop_table: DROP TABLE ID . SEMICOLON
+
+    SEMICOLON  shift, and go to state 48
+
+
+state 39
+
+   17 drop_view: DROP VIEW ID . SEMICOLON
+
+    SEMICOLON  shift, and go to state 49
+
+
+state 40
+
+   54 attr: ID DOT . ID
+
+    ID  shift, and go to state 50
+
+
+state 41
+
+   33 query: SELECT select_attr FROM . rel_list WHERE condition
+
+    ID  shift, and go to state 51
+
+    rel_list  go to state 52
+
+
+state 42
+
+   56 attr_list: attr_list COMMA . attr
+
+    ID  shift, and go to state 26
+
+    attr  go to state 53
+
+
+state 43
+
+   24 insert: INSERT INTO ID . VALUES LBRACE value_list RBRACE SEMICOLON
+
+    VALUES  shift, and go to state 54
+
+
+state 44
+
+   32 delete: DELETE STAR FROM . ID SEMICOLON
+
+    ID  shift, and go to state 55
+
+
+state 45
+
+   30 delete: DELETE FROM ID . WHERE condition SEMICOLON
+   31       | DELETE FROM ID . SEMICOLON
+
+    SEMICOLON  shift, and go to state 56
+    WHERE      shift, and go to state 57
+
+
+state 46
+
+   14 create_table: CREATE TABLE ID LBRACE . attr_def_list RBRACE SEMICOLON
+
+    ID  shift, and go to state 58
+
+    attr_def_list  go to state 59
+    attr_def       go to state 60
+
+
+state 47
+
+   16 create_view: CREATE VIEW ID AS . query SEMICOLON
+
+    SELECT  shift, and go to state 5
+
+    query  go to state 61
+
+
+state 48
+
+   15 drop_table: DROP TABLE ID SEMICOLON .
+
+    $default  reduce using rule 15 (drop_table)
+
+
+state 49
+
+   17 drop_view: DROP VIEW ID SEMICOLON .
+
+    $default  reduce using rule 17 (drop_view)
+
+
+state 50
+
+   54 attr: ID DOT ID .
+
+    $default  reduce using rule 54 (attr)
+
+
+state 51
+
+   57 rel_list: ID .
+
+    $default  reduce using rule 57 (rel_list)
+
+
+state 52
+
+   33 query: SELECT select_attr FROM rel_list . WHERE condition
+   58 rel_list: rel_list . COMMA ID
+
+    COMMA  shift, and go to state 62
+    WHERE  shift, and go to state 63
+
+
+state 53
+
+   56 attr_list: attr_list COMMA attr .
+
+    $default  reduce using rule 56 (attr_list)
+
+
+state 54
+
+   24 insert: INSERT INTO ID VALUES . LBRACE value_list RBRACE SEMICOLON
+
+    LBRACE  shift, and go to state 64
+
+
+state 55
+
+   32 delete: DELETE STAR FROM ID . SEMICOLON
+
+    SEMICOLON  shift, and go to state 65
+
+
+state 56
+
+   31 delete: DELETE FROM ID SEMICOLON .
+
+    $default  reduce using rule 31 (delete)
+
+
+state 57
+
+   30 delete: DELETE FROM ID WHERE . condition SEMICOLON
+
+    LBRACE    shift, and go to state 66
+    NOT       shift, and go to state 67
+    NUMBER    shift, and go to state 68
+    ID        shift, and go to state 26
+    STRING_V  shift, and go to state 69
+
+    value      go to state 70
+    condition  go to state 71
+    av         go to state 72
+    avlist     go to state 73
+    attr       go to state 74
+
+
+state 58
+
+   20 attr_def: ID . type
+
+    INT_T     shift, and go to state 75
+    STRING_T  shift, and go to state 76
+    FLOAT_T   shift, and go to state 77
+
+    type  go to state 78
+
+
+state 59
+
+   14 create_table: CREATE TABLE ID LBRACE attr_def_list . RBRACE SEMICOLON
+   19 attr_def_list: attr_def_list . COMMA attr_def
+
+    RBRACE  shift, and go to state 79
+    COMMA   shift, and go to state 80
+
+
+state 60
+
+   18 attr_def_list: attr_def .
+
+    $default  reduce using rule 18 (attr_def_list)
+
+
+state 61
+
+   16 create_view: CREATE VIEW ID AS query . SEMICOLON
+
+    SEMICOLON  shift, and go to state 81
+
+
+state 62
+
+   58 rel_list: rel_list COMMA . ID
+
+    ID  shift, and go to state 82
+
+
+state 63
+
+   33 query: SELECT select_attr FROM rel_list WHERE . condition
+
+    LBRACE    shift, and go to state 66
+    NOT       shift, and go to state 67
+    NUMBER    shift, and go to state 68
+    ID        shift, and go to state 26
+    STRING_V  shift, and go to state 69
+
+    value      go to state 70
+    condition  go to state 83
+    av         go to state 72
+    avlist     go to state 73
+    attr       go to state 74
+
+
+state 64
+
+   24 insert: INSERT INTO ID VALUES LBRACE . value_list RBRACE SEMICOLON
+
+    NUMBER    shift, and go to state 68
+    STRING_V  shift, and go to state 69
+
+    value_list  go to state 84
+    value       go to state 85
+
+
+state 65
+
+   32 delete: DELETE STAR FROM ID SEMICOLON .
+
+    $default  reduce using rule 32 (delete)
+
+
+state 66
+
+   42 condition: LBRACE . condition RBRACE
+
+    LBRACE    shift, and go to state 66
+    NOT       shift, and go to state 67
+    NUMBER    shift, and go to state 68
+    ID        shift, and go to state 26
+    STRING_V  shift, and go to state 69
+
+    value      go to state 70
+    condition  go to state 86
+    av         go to state 72
+    avlist     go to state 73
+    attr       go to state 74
+
+
+state 67
+
+   41 condition: NOT . condition
+
+    LBRACE    shift, and go to state 66
+    NOT       shift, and go to state 67
+    NUMBER    shift, and go to state 68
+    ID        shift, and go to state 26
+    STRING_V  shift, and go to state 69
+
+    value      go to state 70
+    condition  go to state 87
+    av         go to state 72
+    avlist     go to state 73
+    attr       go to state 74
+
+
+state 68
+
+   27 value: NUMBER .
+   29      | NUMBER . DOT NUMBER
+
+    DOT  shift, and go to state 88
+
+    $default  reduce using rule 27 (value)
+
+
+state 69
+
+   28 value: STRING_V .
+
+    $default  reduce using rule 28 (value)
+
+
+state 70
+
+   50 av: value .
+
+    $default  reduce using rule 50 (av)
+
+
+state 71
+
+   30 delete: DELETE FROM ID WHERE condition . SEMICOLON
+   39 condition: condition . AND condition
+   40          | condition . OR condition
+
+    SEMICOLON  shift, and go to state 89
+    AND        shift, and go to state 90
+    OR         shift, and go to state 91
+
+
+state 72
+
+   37 condition: av . compOp av
+   51 avlist: av .
+
+    EQ  shift, and go to state 92
+    LT  shift, and go to state 93
+    GT  shift, and go to state 94
+    LE  shift, and go to state 95
+    GE  shift, and go to state 96
+    NE  shift, and go to state 97
+
+    $default  reduce using rule 51 (avlist)
+
+    compOp  go to state 98
+
+
+state 73
+
+   38 condition: avlist . IN LBRACE query RBRACE
+   52 avlist: avlist . COMMA av
+
+    COMMA  shift, and go to state 99
+    IN     shift, and go to state 100
+
+
+state 74
+
+   49 av: attr .
+
+    $default  reduce using rule 49 (av)
+
+
+state 75
+
+   21 type: INT_T .
+
+    $default  reduce using rule 21 (type)
+
+
+state 76
+
+   22 type: STRING_T .
+
+    $default  reduce using rule 22 (type)
+
+
+state 77
+
+   23 type: FLOAT_T .
+
+    $default  reduce using rule 23 (type)
+
+
+state 78
+
+   20 attr_def: ID type .
+
+    $default  reduce using rule 20 (attr_def)
+
+
+state 79
+
+   14 create_table: CREATE TABLE ID LBRACE attr_def_list RBRACE . SEMICOLON
+
+    SEMICOLON  shift, and go to state 101
+
+
+state 80
+
+   19 attr_def_list: attr_def_list COMMA . attr_def
+
+    ID  shift, and go to state 58
+
+    attr_def  go to state 102
+
+
+state 81
+
+   16 create_view: CREATE VIEW ID AS query SEMICOLON .
+
+    $default  reduce using rule 16 (create_view)
+
+
+state 82
+
+   58 rel_list: rel_list COMMA ID .
+
+    $default  reduce using rule 58 (rel_list)
+
+
+state 83
+
+   33 query: SELECT select_attr FROM rel_list WHERE condition .
+   39 condition: condition . AND condition
+   40          | condition . OR condition
+
+    AND  shift, and go to state 90
+    OR   shift, and go to state 91
+
+    $default  reduce using rule 33 (query)
+
+
+state 84
+
+   24 insert: INSERT INTO ID VALUES LBRACE value_list . RBRACE SEMICOLON
+   26 value_list: value_list . COMMA value
+
+    RBRACE  shift, and go to state 103
+    COMMA   shift, and go to state 104
+
+
+state 85
+
+   25 value_list: value .
+
+    $default  reduce using rule 25 (value_list)
+
+
+state 86
+
+   39 condition: condition . AND condition
+   40          | condition . OR condition
+   42          | LBRACE condition . RBRACE
+
+    RBRACE  shift, and go to state 105
+    AND     shift, and go to state 90
+    OR      shift, and go to state 91
+
+
+state 87
+
+   39 condition: condition . AND condition
+   40          | condition . OR condition
+   41          | NOT condition .
+
+    $default  reduce using rule 41 (condition)
+
+
+state 88
+
+   29 value: NUMBER DOT . NUMBER
+
+    NUMBER  shift, and go to state 106
+
+
+state 89
+
+   30 delete: DELETE FROM ID WHERE condition SEMICOLON .
+
+    $default  reduce using rule 30 (delete)
+
+
+state 90
+
+   39 condition: condition AND . condition
+
+    LBRACE    shift, and go to state 66
+    NOT       shift, and go to state 67
+    NUMBER    shift, and go to state 68
+    ID        shift, and go to state 26
+    STRING_V  shift, and go to state 69
+
+    value      go to state 70
+    condition  go to state 107
+    av         go to state 72
+    avlist     go to state 73
+    attr       go to state 74
+
+
+state 91
+
+   40 condition: condition OR . condition
+
+    LBRACE    shift, and go to state 66
+    NOT       shift, and go to state 67
+    NUMBER    shift, and go to state 68
+    ID        shift, and go to state 26
+    STRING_V  shift, and go to state 69
+
+    value      go to state 70
+    condition  go to state 108
+    av         go to state 72
+    avlist     go to state 73
+    attr       go to state 74
+
+
+state 92
+
+   43 compOp: EQ .
+
+    $default  reduce using rule 43 (compOp)
+
+
+state 93
+
+   44 compOp: LT .
+
+    $default  reduce using rule 44 (compOp)
+
+
+state 94
+
+   45 compOp: GT .
+
+    $default  reduce using rule 45 (compOp)
+
+
+state 95
+
+   46 compOp: LE .
+
+    $default  reduce using rule 46 (compOp)
+
+
+state 96
+
+   47 compOp: GE .
+
+    $default  reduce using rule 47 (compOp)
+
+
+state 97
+
+   48 compOp: NE .
+
+    $default  reduce using rule 48 (compOp)
+
+
+state 98
+
+   37 condition: av compOp . av
+
+    NUMBER    shift, and go to state 68
+    ID        shift, and go to state 26
+    STRING_V  shift, and go to state 69
+
+    value  go to state 70
+    av     go to state 109
+    attr   go to state 74
+
+
+state 99
+
+   52 avlist: avlist COMMA . av
+
+    NUMBER    shift, and go to state 68
+    ID        shift, and go to state 26
+    STRING_V  shift, and go to state 69
+
+    value  go to state 70
+    av     go to state 110
+    attr   go to state 74
+
+
+state 100
+
+   38 condition: avlist IN . LBRACE query RBRACE
+
+    LBRACE  shift, and go to state 111
+
+
+state 101
+
+   14 create_table: CREATE TABLE ID LBRACE attr_def_list RBRACE SEMICOLON .
+
+    $default  reduce using rule 14 (create_table)
+
+
+state 102
+
+   19 attr_def_list: attr_def_list COMMA attr_def .
+
+    $default  reduce using rule 19 (attr_def_list)
+
+
+state 103
+
+   24 insert: INSERT INTO ID VALUES LBRACE value_list RBRACE . SEMICOLON
+
+    SEMICOLON  shift, and go to state 112
+
+
+state 104
+
+   26 value_list: value_list COMMA . value
+
+    NUMBER    shift, and go to state 68
+    STRING_V  shift, and go to state 69
+
+    value  go to state 113
+
+
+state 105
+
+   42 condition: LBRACE condition RBRACE .
+
+    $default  reduce using rule 42 (condition)
+
+
+state 106
+
+   29 value: NUMBER DOT NUMBER .
+
+    $default  reduce using rule 29 (value)
+
+
+state 107
+
+   39 condition: condition . AND condition
+   39          | condition AND condition .
+   40          | condition . OR condition
+
+    $default  reduce using rule 39 (condition)
+
+
+state 108
+
+   39 condition: condition . AND condition
+   40          | condition . OR condition
+   40          | condition OR condition .
+
+    AND  shift, and go to state 90
+
+    $default  reduce using rule 40 (condition)
+
+
+state 109
+
+   37 condition: av compOp av .
+
+    $default  reduce using rule 37 (condition)
+
+
+state 110
+
+   52 avlist: avlist COMMA av .
+
+    $default  reduce using rule 52 (avlist)
+
+
+state 111
+
+   38 condition: avlist IN LBRACE . query RBRACE
+
+    SELECT  shift, and go to state 5
+
+    query  go to state 114
+
+
+state 112
+
+   24 insert: INSERT INTO ID VALUES LBRACE value_list RBRACE SEMICOLON .
+
+    $default  reduce using rule 24 (insert)
+
+
+state 113
+
+   26 value_list: value_list COMMA value .
+
+    $default  reduce using rule 26 (value_list)
+
+
+state 114
+
+   38 condition: avlist IN LBRACE query . RBRACE
+
+    RBRACE  shift, and go to state 115
+
+
+state 115
+
+   38 condition: avlist IN LBRACE query RBRACE .
+
+    $default  reduce using rule 38 (condition)

@@ -12,7 +12,7 @@
 typedef int AttrType;
 #define INT 		1
 #define STRING	2
-#define FLOT		3
+#define FLOAT		3
 /*Compare Operator*/
 #define OP_NUM	7
 typedef int CompOp;
