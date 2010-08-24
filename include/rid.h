@@ -14,8 +14,8 @@ struct RID{
 	PageNum pageNum;
 	SlotNum slotNum;
 
-	RC (*GetPageNum) (RID* rid, PageNum *pageNum);
-	RC (*GetSlotNum) (RID* rid, SlotNum *slotNum);
+	RC (*GetPageNum) (const RID* rid, PageNum *pageNum);
+	RC (*GetSlotNum) (const RID* rid, SlotNum *slotNum);
 	RC (*SetPageNum) (RID* rid, PageNum pageNum);
 	RC (*SetSlotNum) (RID* rid, SlotNum slotNum);
 };

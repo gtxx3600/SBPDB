@@ -7,14 +7,23 @@
 #define OTHER  1
 #define PASS_BREAK  4
 #define ALL_PAGE_SIZE  4096
-typedef enum AttrType {
-	INT, STRING, FLOAT
-}AttrType;
-
-typedef enum CompOp {
-	EQ_OP, LT_OP, GT_OP, LE_OP, GE_OP, NE_OP, NO_OP
-}CompOp;
-
+/*AttrType*/
+#define TYPE_NUM	3
+typedef int AttrType;
+#define INT 		1
+#define STRING	2
+#define FLOT		3
+/*Compare Operator*/
+#define OP_NUM	7
+typedef int CompOp;
+#define EQ_OP		1
+#define LT_OP		2
+#define GT_OP		3
+#define LE_OP		4
+#define GE_OP		5
+#define NE_OP		6
+#define NO_OP		7
+/*Client Hint*/
 typedef enum ClientHint {
 	NO_HINT
 }ClientHint;
@@ -52,6 +61,7 @@ typedef int RC;
 #define	QL_WRONGATTRTYPE		23
 // Negative
 #define	DB_PARAM				-1
+#define	DB_INTERNAL			-2
 
 #define	PF_NOMEM 				-15     // out of memory
 #define	PF_NOBUF				-16           // out of buffer space

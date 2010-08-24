@@ -8,12 +8,12 @@
 #include "rid.h"
 
 
-RC RID_GetPageNum(RID* this, PageNum *pageNum)
+RC RID_GetPageNum(const RID* this, PageNum *pageNum)
 {
 	*pageNum = this->pageNum;
 	return NORMAL;
 }
-RC RID_GetSlotNum(RID* this, SlotNum *slotNum)
+RC RID_GetSlotNum(const RID* this, SlotNum *slotNum)
 {
 	*slotNum = this->slotNum;
 	return NORMAL;

@@ -16,6 +16,8 @@ typedef struct RM_FileHandle RM_FileHandle;
 typedef struct RM_Record RM_Record;
 typedef struct RM_FileScan RM_FileScan;
 typedef int RecordSize;
+
+#define FIRST_AVAILABLE_PAGE	1
 struct RM_Manager {
 	PF_Manager *pf_Manager;
 	RC (*CreateFile)(RM_Manager* rmm, const char* fileName, int recordSize);
@@ -28,12 +30,15 @@ RC initRM_Manager(RM_Manager* rmm, struct PF_Manager * pfm);
 
 struct RM_FileHandle {
 
-	int recordSize;
+	RecordSize recordSize;
 	int opened;
 	int modified;
-
-	PageNum pageNum;
-	SlotNum slotNum;
+	int pageHeaderLength;
+	int bitmappos;
+	PageNum totalPageNum;
+	SlotNum totalSlotNum;
+	SlotNum slotInOnePage;
+	PageNum firstFree;
 	PF_FileHandle *pf_FileHandle;
 
 	RC (*GetRec)		(RM_FileHandle* rmfh, const RID *rid, RM_Record *rec); 	// Get a record
@@ -57,6 +62,16 @@ struct RM_Record {
 RC initRM_Record(RM_Record * rmr);
 
 struct RM_FileScan{
+	AttrType at;
+	int al;
+	int ao;
+	CompOp op;
+	void* value;
+	ClientHint ch;
+
+	RM_FileHandle * rmfh;
+	int start;
+	RID crid;				//current RID
 	RC (*OpenScan)     (RM_FileScan *rmfs,
 							RM_FileHandle *fileHandle,
 							AttrType      attrType,
@@ -68,6 +83,8 @@ struct RM_FileScan{
 
 	RC (*GetNextRec)   (RM_FileScan *rmfs, RM_Record *rec);
 	RC (*CloseScan)    (RM_FileScan *rmfs);
+	void (*NextRID)    (RM_FileScan *rmfs);
+	int (*opfunc)      (void* left, void* right, int len);
 };
 
 RC initRM_FileScan(RM_FileScan *rmfs);
