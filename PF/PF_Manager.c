@@ -26,7 +26,7 @@ RC CreateFile(PF_Manager *this,const char *fileName ) {
 		initPF_PageHandle(&pf);
 		pf.pagenum = 0;
 		memcpy(pf.page,&num,4);
-		fwrite(pf.page, 4096, 1, cfile);
+		fwrite(pf.page, ALL_PAGE_SIZE, 1, cfile);
 		fclose(cfile);
 		return NORMAL;//normal return
 	} else {

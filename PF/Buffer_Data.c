@@ -1,206 +1,201 @@
 /*
  * Buffer_Data.c
  *
- *  Created on: 2010-8-20
+ *  Created on: 2010-8-23
  *      Author: cxy
  */
 
 #include "bufferdata.h"
 #include "hashmap.h"
+Buffer_Data thebuffer;
+int writeBack(Buffer_Data *this, Page_Buffer *pb);
+int copyBack(Buffer_Data *this, Page_Buffer *pb);
+int pinPage(Buffer_Data *this, Page_Buffer *pb);
+int addMap(Buffer_Data *this, char* key, Page_Buffer *pb);
+int delMap(Buffer_Data *this, char* key);
+Page_Buffer* getMap(Buffer_Data *this, char* key);
 
-Buffer_Data theBuffer;
-int addMap(char* str, int *num, struct Buffer_Data *bd) {
-	hmap_insert(bd->hm, str, -1, num);
+int unpinPage(Buffer_Data *this, Page_Buffer *pb);
+int allocPage(Buffer_Data *this, char* filename, int pagenum);
+//int getpData(Page_Buffer *this);
+
+Page_Buffer* getMap(Buffer_Data *this, char* key) {
+	return ((Page_Buffer*) hmap_search(this->pagemap, key));
+}
+
+int addMap(Buffer_Data *this, char* key, Page_Buffer *pb) {
+	hmap_insert(this->pagemap, key, -1, pb);
 	return 0;
 }
 
-int delMap(char* str, struct Buffer_Data *bd) {
-	hmap_delete(bd->hm, str);
+int delMap(Buffer_Data *this, char* key) {
+	hmap_delete(this->pagemap, key);
 	return 0;
 }
 
-int getMap(char* str, struct Buffer_Data *bd) {
-	int * ret = NULL;
-	if ((ret = (int *) hmap_search(bd->hm, str)) == NULL) {
-		return -1;
-	} else {
-		return *ret;
+int writeBack(Buffer_Data *this, Page_Buffer *pb) {
+	if (pb == NULL) {
+		return 1;
 	}
-	return -1;
-}
-int getMRU(struct Buffer_Data *bd) {
-	return (bd->MRU);
-}
-
-int getLRU(struct Buffer_Data *bd) {
-	return (bd->LRU);
-}
-
-int setLRU(int num, struct Buffer_Data *bd) {
-	bd->LRU = num;
-	return 0;
-}
-
-int setMRU(int num, struct Buffer_Data *bd) {
-	bd->MRU = num;
-	return 0;
-}
-
-int getdata(int num) {
-	if (num != -1) {
-		return (num * ALL_PAGE_SIZE + 4);
-	} else {
-		return (-1);
-	}
-}
-
-int delMRU(struct Buffer_Data *bd) {
-	int NMRU = bd->Buffer_Chain[bd->MRU * (2 + OTHER)];
-	bd->Buffer_Chain[bd->MRU * (2 + OTHER)] = -1;
-	bd->MRU = NMRU;
-	if (bd->MRU != -1) {
-		bd->Buffer_Chain[bd->MRU * (2 + OTHER) + 2] = -1;
-	} else {
-		bd->LRU = -1;
-	}
-	return (bd->MRU);
-}
-int delLRU(struct Buffer_Data *bd) {
-	int NLRU = bd->Buffer_Chain[bd->LRU * (2 + OTHER) + 2];
-	bd->Buffer_Chain[bd->LRU * (2 + OTHER) + 2] = -1;
-	bd->LRU = NLRU;
-	if (bd->LRU != -1) {
-		bd->Buffer_Chain[bd->LRU * (2 + OTHER)] = -1;
-	} else {
-		bd->MRU = -1;
-	}
-	return (bd->LRU);
-}
-
-int addLRU(int num, struct Buffer_Data *bd) {
-	bd->Buffer_Chain[num * (2 + OTHER) + 2] = bd->LRU;
-	if (bd->LRU != -1) {
-		bd->Buffer_Chain[bd->LRU * (2 + OTHER)] = num;
-	} else {
-		bd->MRU = num;
-	}
-	bd->LRU = num;
-	return (bd->LRU);
-}
-
-int addMRU(int num, struct Buffer_Data *bd) {
-	if (bd->MRU != -1) {
-		bd->Buffer_Chain[bd->MRU * (2 + OTHER) + 2] = num;
-	}
-	bd->Buffer_Chain[num * (2 + OTHER)] = bd->MRU;
-	bd->MRU = num;
-	return (bd->MRU);
-}
-
-int delChain(int num, struct Buffer_Data *bd) {
-	if (bd->MRU == num) {
-		return (delMRU(bd));
-	} else if (bd-> LRU == num) {
-		return (delLRU(bd));
-	} else {
-		int last = bd->Buffer_Chain[num * (2 + OTHER)];
-		int next = bd->Buffer_Chain[num * (2 + OTHER) + 2];
-		bd->Buffer_Chain[last * (2 + OTHER) + 2] = next;
-		bd->Buffer_Chain[next * (2 + OTHER)] = last;
-		bd->Buffer_Chain[num * (2 + OTHER) + 0] = -1;
-		bd->Buffer_Chain[num * (2 + OTHER) + 2] = -1;
-		return (num);
-	}
-}
-
-RC writeBackWithDel(int num, struct Buffer_Data *bd) {
-	char* filename;
-	filename = bd->fname[num];
-	int intPageNum = bd->Buffer_Chain[(2 + OTHER) * num + 1];
-	char strPageNum[10];
-	sprintf(strPageNum, "%d", intPageNum);
-	strcat(filename, strPageNum);
-	delMap(filename, bd);
-	FILE *outfile = fopen(bd->fname[num], "rb+");
-	if (outfile == NULL) {
+	char* fname = pb->filename;
+	FILE *wfile = fopen(fname, "rb+");
+	if (wfile == NULL) {
 		printf("file not exist");
 		return 1;
 	} else {
-		fseek(outfile, (intPageNum+1) * ALL_PAGE_SIZE , SEEK_SET );
-		int suc = fwrite(&(bd->Buffer_Pool[getdata(num)]), PF_BUFFER_SIZE, 1,
-				outfile);
-		fclose(outfile);
-		return suc;
+		fseek(wfile, (pb->pagenum) * ALL_PAGE_SIZE, SEEK_SET );
+		fwrite(pb->pagedata, ALL_PAGE_SIZE, 1, wfile);
+		fclose(wfile);
 	}
-
+	free(pb);
 	return 0;
 }
 
-RC writeBack(int num, struct Buffer_Data *bd) {
-	char* filename;
-	filename = bd->fname[num];
-	int intPageNum = bd->Buffer_Chain[(2 + OTHER) * num + 1];
-	char strPageNum[10];
-	sprintf(strPageNum, "%d", intPageNum);
-	strcat(filename, strPageNum);
-	FILE *outfile = fopen(bd->fname[num], "rb+");
-	if (outfile == NULL) {
+int copyBack(Buffer_Data *this, Page_Buffer *pb) {
+	if (pb == NULL) {
+		return 1;
+	}
+	char* fname = pb->filename;
+	FILE *wfile = fopen(fname, "rb+");
+	if (wfile == NULL) {
 		printf("file not exist");
 		return 1;
 	} else {
-		fseek(outfile, (intPageNum+1) * ALL_PAGE_SIZE , SEEK_SET );
-		int suc = fwrite(&(bd->Buffer_Pool[getdata(num)]), PF_BUFFER_SIZE, 1,
-				outfile);
-		fclose(outfile);
-		return suc;
+		fseek(wfile, (pb->pagenum) * ALL_PAGE_SIZE, SEEK_SET );
+		fwrite(pb->pagedata, ALL_PAGE_SIZE, 1, wfile);
+		fclose(wfile);
 	}
-
 	return 0;
 }
 
-RC initBuffer_Data(struct Buffer_Data *bd) {
-	int i = 0;
-	for (i = 0; i < PF_BUFFER_SIZE; i++) {
-		bd->dirty[i] = 0;
-		bd->fname[i] = '\0';
-		int j = 0;
-		for (j = 0; j < PF_PAGE_SIZE; j++) {
-			bd->Buffer_Pool[getdata(i) + j] = '\0';
+int unpinPage(Buffer_Data *this, Page_Buffer *pb) {
+	if (pb == NULL) {
+		return 1;
+	}
+	pb->pinned = 0;
+	if (pb->next_page != NULL) {
+		pb->prev_page->next_page = pb->next_page;
+	} else {
+		pb->prev_page->next_page = NULL;
+	}
+	if (this->lpin_page == pb) {
+		this->lpin_page = pb->prev_page;
+	}
+
+	if (pb->next_page != NULL) {
+		pb->next_page->prev_page = pb->prev_page;
+	}
+	this->lunpin_page->next_page = pb;
+	pb ->prev_page = this->lunpin_page;
+	this->lunpin_page = pb;
+	pb->next_page = NULL;
+	if (this->unpin_num == 0) {
+		this->funpin_page = pb;
+	}
+	this->pin_num--;
+	this->unpin_num++;
+	return 0;
+}
+
+int pinPage(Buffer_Data *this, Page_Buffer *pb) {
+	if (pb == NULL) {
+		return 1;
+	}
+	pb->pinned = 1;
+	if (pb->next_page != NULL) {
+		pb->prev_page->next_page = pb->next_page;
+		pb->next_page->prev_page = pb->prev_page;
+	} else {
+		pb->prev_page->next_page = NULL;
+	}
+	if (this->lunpin_page == pb) {
+		this->lunpin_page = pb->prev_page;
+	}
+	if (this->funpin_page == pb) {
+		if (this->unpin_num != 1) {
+			this->funpin_page = pb->next_page;
+		} else {
+			this->funpin_page = this->unpin_header;
 		}
 	}
-	for (i = 0; i < PF_BUFFER_SIZE; i++) {
-		bd->Buffer_Chain[i * (2 + OTHER)] = i - 1;
-		bd->Buffer_Chain[i * (2 + OTHER) + 1] = 0;
-		bd->Buffer_Chain[i * (2 + OTHER) + 2] = i + 1;
+	this->lpin_page->next_page = pb;
+	pb ->prev_page = this->lpin_page;
+	this->lpin_page = pb;
+	pb->next_page = NULL;
+
+	this->pin_num++;
+	this->unpin_num--;
+	return 0;
+}
+int allocPage(Buffer_Data *this, char* filename, int pagenum) {
+	Page_Buffer *pb;
+	pb = (Page_Buffer*) malloc(sizeof(Page_Buffer));
+	pb->dirty = 0;
+	pb->pagenum = pagenum;
+	pb->filename = filename;
+	pb->pagedata = (char*) malloc(ALL_PAGE_SIZE);
+	pb->prev_page = this->lpin_page;
+	pb->prev_page->next_page = pb;
+	pb->next_page = NULL;
+	char strpagenum[KEY_LENGTH];
+	sprintf(strpagenum, "%d", pagenum);
+	strcat(strpagenum, filename);
+	pb->key = strpagenum;
+	addMap(this, strpagenum, pb);
+	this->lpin_page = pb;
+	this->page_num++;
+	this->pin_num++;
+	if (this->page_num > MIN_POOL_SIZE) {
+		if (this->unpin_num > 0) {
+			delMap(this, this->funpin_page->key);
+			writeBack(this, this->funpin_page);
+			//		free(this->funpin_page);
+			if (this->unpin_num > 1) {
+				this->funpin_page = this->funpin_page->next_page;
+			}
+			this->page_num--;
+			this->unpin_num--;
+		}
+
 	}
-	bd->Buffer_Chain[PF_BUFFER_SIZE * (2 + OTHER) - 1] = -1;
-	bd->LRU = 0;
-	bd->MRU = PF_BUFFER_SIZE - 1;
-	hmap_create(&(bd->hm), 40/*PF_BUFFER_SIZE*/);
-	hmmmm = bd->hm;
-	bd->writeBackWithDel = writeBackWithDel;
-	bd->addLRU = addLRU;
-	bd->addMRU = addMRU;
-	bd->addMap = addMap;
-	bd->delChain = delChain;
-	bd->delLRU = delLRU;
-	bd->delMRU = delMRU;
-	bd->delMap = delMap;
-	bd->getLRU = getLRU;
-	bd->getMRU = getMRU;
-	bd->getdata = getdata;
-	bd->getMap = getMap;
-	bd->setLRU = setLRU;
-	bd->setMRU = setMRU;
-	bd->writeBack = writeBack;
-	return (NORMAL);
+	return 0;
+}
+int createpage(Page_Buffer *pb, char* filename, int pagenum) {
+	pb = (Page_Buffer*) malloc(sizeof(Page_Buffer));
+	pb->dirty = 0;
+	pb->pagenum = pagenum;
+	pb->filename = filename;
+	pb->pagedata = (char*) malloc(ALL_PAGE_SIZE);
+	pb->pinned = 1;
+	return 0;
+}
+
+int initBuffer_Data(Buffer_Data *this) {
+	this->addMap = addMap;
+	this->allocPage = allocPage;
+	this->delMap = delMap;
+	this->getMap = getMap;
+	this->unpin_header = (Page_Buffer*) malloc(sizeof(Page_Buffer));
+	this->pin_header = (Page_Buffer*) malloc(sizeof(Page_Buffer));
+	this->lpin_page = this->pin_header;
+	this->lunpin_page = this->unpin_header;
+	this->funpin_page = this->unpin_header;
+	this->page_num = 0;
+	this->pin_num = 0;
+	this->unpin_num = 0;
+	this->writeBack = writeBack;
+	hmap_create(&this->pagemap, 40);
+	this->unpinPage = unpinPage;
+	this->pinPage=pinPage;
+	return 0;
 }
 
 Buffer_Data *getBuffer_Data() {
-	if (theBuffer.init != 1) {
+	if (thebuffer.init != 1) {
 		printf("init\n");
-		initBuffer_Data(&theBuffer);
-		theBuffer.init = 1;
+		initBuffer_Data(&thebuffer);
+		thebuffer.init = 1;
 	}
-	return &theBuffer;
+	return &thebuffer;
 }
+
