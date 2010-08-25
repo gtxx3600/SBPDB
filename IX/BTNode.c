@@ -9,7 +9,6 @@
 extern int (**typeOP[TYPE_NUM])(void* left,void*right,int len);
 int findPosToInsert( void* node, void* value, AttrType attrType, int attrLength, int level)
 {
-	//int attrLength = ixh->attrLength;
 	int (**funcOP)(void* left,void*right,int len) = typeOP[attrType];
 	if(level <= 1)
 	{
