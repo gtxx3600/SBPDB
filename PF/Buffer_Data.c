@@ -43,7 +43,7 @@ int writeBack(Buffer_Data *this, Page_Buffer *pb) {
 		printf("file not exist");
 		return 1;
 	} else {
-		fseek(wfile, (pb->pagenum) * ALL_PAGE_SIZE, SEEK_SET );
+		fseek(wfile, (pb->pagenum+1) * ALL_PAGE_SIZE, SEEK_SET );
 		fwrite(pb->pagedata, ALL_PAGE_SIZE, 1, wfile);
 		fclose(wfile);
 	}
@@ -61,7 +61,7 @@ int copyBack(Buffer_Data *this, Page_Buffer *pb) {
 		printf("file not exist");
 		return 1;
 	} else {
-		fseek(wfile, (pb->pagenum) * ALL_PAGE_SIZE, SEEK_SET );
+		fseek(wfile, (pb->pagenum+1) * ALL_PAGE_SIZE, SEEK_SET );
 		fwrite(pb->pagedata, ALL_PAGE_SIZE, 1, wfile);
 		fclose(wfile);
 	}
@@ -71,6 +71,11 @@ int copyBack(Buffer_Data *this, Page_Buffer *pb) {
 int unpinPage(Buffer_Data *this, Page_Buffer *pb) {
 	if (pb == NULL) {
 		return 1;
+	}
+	if(pb->pinned>1)
+	{
+		pb->pinned --;
+		return 0;
 	}
 	pb->pinned = 0;
 	if (pb->next_page != NULL) {
@@ -101,7 +106,7 @@ int pinPage(Buffer_Data *this, Page_Buffer *pb) {
 	if (pb == NULL) {
 		return 1;
 	}
-	pb->pinned = 1;
+	pb->pinned = pb->pinned+1;
 	if (pb->next_page != NULL) {
 		pb->prev_page->next_page = pb->next_page;
 		pb->next_page->prev_page = pb->prev_page;
@@ -127,6 +132,7 @@ int pinPage(Buffer_Data *this, Page_Buffer *pb) {
 	this->unpin_num--;
 	return 0;
 }
+
 int allocPage(Buffer_Data *this, char* filename, int pagenum) {
 	Page_Buffer *pb;
 	pb = (Page_Buffer*) malloc(sizeof(Page_Buffer));

@@ -25,7 +25,7 @@ RC ForcePages(PF_FileHandle *this, PageNum pageNum);
 PageNum GetNpage(PF_FileHandle *this);
 
 RC GetFirstPage(PF_FileHandle *this, PF_PageHandle *pageHandle) {
-	return GetThisPage(this, 1, pageHandle);
+	return GetThisPage(this, 0, pageHandle);
 }
 
 RC GetLastPage(PF_FileHandle *this, struct PF_PageHandle *pageHandle) {
@@ -50,7 +50,7 @@ RC GetThisPage(PF_FileHandle *this, PageNum pageNum, PF_PageHandle *pageHandle) 
 	//printf("MRU %d\n", MRU);
 	if (this->npage >= pageNum && pageNum >= 0) {
 		if (theBD->getMap(theBD, strPageNum) == NULL) {
-			fseek(fio, pageNum * ALL_PAGE_SIZE, SEEK_SET);
+			fseek(fio, (pageNum+1) * ALL_PAGE_SIZE, SEEK_SET);
 
 			theBD->allocPage(theBD, this->filename, pageNum);
 			char *c = (theBD->lpin_page->pagedata);
@@ -100,7 +100,7 @@ RC AllocatePage(PF_FileHandle *this, struct PF_PageHandle *pageHandle) {
 	fwrite(&this->npage, 4, 1, wfile);
 	fclose(wfile);
 //	printf("get page : %d\n",this->npage);
-	return (GetThisPage(this, this->npage, pageHandle));
+	return (GetThisPage(this, this->npage-1, pageHandle));
 }
 
 RC DisposePage(PF_FileHandle *this, PageNum pageNum) {
