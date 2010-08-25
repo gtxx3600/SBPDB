@@ -118,4 +118,7 @@ struct QL_Manager {
 			Expression *exp);
 };
 
+RC initQL_Manager(QL_Manager *self, SM_Manager *smm,
+		IX_Manager *ixm, RM_Manager *rmm);
+
 #endif

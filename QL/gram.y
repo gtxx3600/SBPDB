@@ -17,6 +17,38 @@
 	__p; })
 
 Expression *translateQuery(RelAttrList *avl, RelList *rl, Condition *cond) {
+	Expression *rels = NULL;
+	RelList *p = rl;
+	Expression *ret = NEW(Expression);
+	ret->kind = ProjectionExp;
+	ret->u.proje = NEW(struct projection_exp);
+	ret->u.proje->avl = avl;
+	ret->u.proje->exp = NEW(Expression);
+	ret->u.proje->exp->kind = SelectionExp;
+	ret->u.proje->exp->u.sele = NEW(struct selection_exp);
+	ret->u.proje->exp->u.sele->cond = cond;
+	while (p) {
+		if (rels) {
+			Expression *tmp = NEW(Expression)
+			Expression *left, right;
+			tmp->kind = ProductExp;
+			tmp->u.prode = NEW(struct product_exp);
+			left = rels;
+			right = NEW(Expression);
+			right->kind = Relation;
+			right->u.rele = NEW(struct relation);
+			right->u.rele->id = p->id;
+			tmp->u.prode->left = left;
+			tmp->u.prode->right = right;
+			rels = tmp;
+		} else {
+			rels = NEW(Expression);
+			rels->kind = Relation;
+			rels->u.rele = NEW(struct relation);
+			rels->u.rele->id = p->id;
+		}
+		p = p->next;
+	}
 	return NULL;
 }
 
