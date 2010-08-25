@@ -119,3 +119,11 @@ int (*floatOP[OP_NUM])(void* left,void*right,int len) =
 		floatNE,
 		defaultOP,
 };
+
+
+int (**typeOP[TYPE_NUM])(void* left,void*right,int len) =
+{
+		intOP,
+		strOP,
+		floatOP,
+};
