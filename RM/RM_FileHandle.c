@@ -87,16 +87,25 @@ SlotNum getAvailableSlot(RM_FileHandle * rmfh, char* pData)
 	{
 		if(bitmap[i] != '\255')
 		{
-			break;
+			for (j = 0; j< 8; j++)
+			{
+				if(!(bitmap[i] & tmp))
+				{
+					slt = 8 * (i - 1) + j;
+					return slt;
+				}
+				tmp <<= 1;
+			}
 		}
 	}
 	if(bitmap[i] != '\255')
 	{
-		for (j = 0; j< rmfh->slotInOnePage % 8; j++)
+		for (j = 0; j<= rmfh->slotInOnePage % 8; j++)
 		{
 			if(!(bitmap[i] & tmp))
 			{
 				slt = 8 * (i - 1) + j;
+				return slt;
 			}
 			tmp <<= 1;
 		}
@@ -210,6 +219,7 @@ RC RM_UpdateRec	(RM_FileHandle* this, const RM_Record *rec)
 	{
 		return ret;
 	}
+//	printf(" page num %d ppp %p\n",pfpageHandle.pagenum,pfpageHandle.page);
 	pfpageHandle.GetData(&pfpageHandle, &pData);
 	updateSlot(this, pData, rec->data, rid->slotNum);
 	this->pf_FileHandle->MarkDirty(this->pf_FileHandle, pfpageHandle.pagenum);

@@ -44,7 +44,8 @@ int writeBack(Buffer_Data *this, Page_Buffer *pb) {
 		return 1;
 	} else {
 		fseek(wfile, (pb->pagenum+1) * ALL_PAGE_SIZE, SEEK_SET );
-		fwrite(pb->pagedata, ALL_PAGE_SIZE, 1, wfile);
+		int suc=fwrite(pb->pagedata, ALL_PAGE_SIZE, 1, wfile);
+		printf("write succeed: %d\n",suc);
 		fclose(wfile);
 	}
 	free(pb);
@@ -62,7 +63,8 @@ int copyBack(Buffer_Data *this, Page_Buffer *pb) {
 		return 1;
 	} else {
 		fseek(wfile, (pb->pagenum+1) * ALL_PAGE_SIZE, SEEK_SET );
-		fwrite(pb->pagedata, ALL_PAGE_SIZE, 1, wfile);
+		int suc = fwrite(pb->pagedata, ALL_PAGE_SIZE, 1, wfile);
+		printf("write succeed: %d\n",suc);
 		fclose(wfile);
 	}
 	return 0;
@@ -193,6 +195,7 @@ int initBuffer_Data(Buffer_Data *this) {
 	hmap_create(&this->pagemap, 40);
 	this->unpinPage = unpinPage;
 	this->pinPage=pinPage;
+	this->copyBack=copyBack;
 	return 0;
 }
 

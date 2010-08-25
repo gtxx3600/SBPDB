@@ -109,7 +109,7 @@ RC DisposePage(PF_FileHandle *this, PageNum pageNum) {
 
 RC MarkDirty(PF_FileHandle *this, PageNum pageNum) {
 	Buffer_Data *theBD = getBuffer_Data();
-	char* strPageNum;
+	char strPageNum[KEY_SIZE];
 	sprintf(strPageNum, "%d", pageNum);
 	strcat(strPageNum, this->filename);
 	Page_Buffer *pb = theBD->getMap(theBD, strPageNum);
