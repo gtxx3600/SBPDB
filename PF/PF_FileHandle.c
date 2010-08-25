@@ -67,7 +67,7 @@ RC GetThisPage(PF_FileHandle *this, PageNum pageNum, PF_PageHandle *pageHandle) 
 			//在buffer中
 			//分类已经pined还是在unpined链中
 			Page_Buffer *pb = theBD->getMap(theBD, strPageNum);
-			if (pb->pinned == 1) {
+			if (pb->pinned >0) {
 				//分类已经pined
 				pageHandle->page = pb->pagedata;
 				pageHandle->pagenum = pageNum;

@@ -59,9 +59,15 @@ int copyBack(Buffer_Data *this, Page_Buffer *pb) {
 	char* fname = pb->filename;
 	FILE *wfile = fopen(fname, "rb+");
 	if (wfile == NULL) {
+		printf("fname: %s \n",pb->filename);
 		printf("file not exist");
 		return 1;
 	} else {
+		if(pb->pagedata == NULL)
+		{
+			printf("copyback: page data null \n");
+		}
+		printf("pagenum %d\n",pb->pagenum);
 		fseek(wfile, (pb->pagenum+1) * ALL_PAGE_SIZE, SEEK_SET );
 		int suc = fwrite(pb->pagedata, ALL_PAGE_SIZE, 1, wfile);
 		printf("write succeed: %d\n",suc);

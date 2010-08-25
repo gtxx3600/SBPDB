@@ -51,7 +51,7 @@ RC DestroyFile(PF_Manager *this,const char *fileName){
 RC OpenFile(PF_Manager *this,const char *fileName, struct PF_FileHandle* fileHandle){
 	FILE *infile = fopen(fileName, "rb+");
 	if ( infile == NULL){
-		printf("file not exist");
+		printf("file not exist\n");
 		return PF_NOTEXIST;
 	}
 	else{
