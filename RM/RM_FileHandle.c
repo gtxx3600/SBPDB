@@ -159,7 +159,10 @@ RC RM_InsertRec	(RM_FileHandle* this, const char *data, RID *rid)
 
 			return ret;
 		}
+		this->firstFree = pfpageHandle.pagenum;
 		pfpageHandle.GetData(&pfpageHandle, &pData);
+		*(int*)pData = 0;
+		this->modified = 1;
 		availableSlot = 0;
 
 	}

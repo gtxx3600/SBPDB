@@ -1,5 +1,8 @@
 #ifndef SBPDB_H
 #define SBPDB_H
+
+#define MAX_FILENAME   20
+
 #define ALL_PAGES					-1
 #define  NIL  -2
 #define  ALL_PAGES  -1
@@ -52,19 +55,21 @@ typedef int RC;
 #define	RM_ATTR_LENGTH_NOTRIGHT		15
 #define	RM_EOF					16
 
-#define	IX_TYPENOTSUPPORT	17
+#define	IX_TYPENOTSUPPORT		17
 #define	IX_EXIST				18
 #define	IX_NOTEXIST			19
+#define 	IX_EOF					20
+#define	IX_FULL				21
 
-#define	SM_NODIR				20
+#define	SM_NODIR				22
 
-#define	QL_WRONGVALUENUM		21
-#define	QL_WRONGVALUETYPE		22
-#define	QL_WRONGATTRTYPE		23
-#define QL_ATTRNOTFOUND			24
-#define QL_ATTRARLREADYFOUND	25
-#define QL_TUPLENOTFOUND		26
-#define QL_NOTSUPPORT			27
+#define	QL_WRONGVALUENUM		23
+#define	QL_WRONGVALUETYPE		24
+#define	QL_WRONGATTRTYPE		25
+#define QL_ATTRNOTFOUND			26
+#define QL_ATTRARLREADYFOUND	27
+#define QL_TUPLENOTFOUND		28
+#define QL_NOTSUPPORT			29
 // Negative
 #define	DB_PARAM				-1
 #define	DB_INTERNAL			-2

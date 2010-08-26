@@ -14,7 +14,7 @@
 #include "sbpdb.h"
 
 typedef int PageNum;
-#define MAX_FILENAME   10
+
 #define PF_BUFFER_SIZE 40
 typedef struct PF_Manager PF_Manager;
 typedef struct PF_PageHandle PF_PageHandle;

@@ -11,10 +11,22 @@
 #include "sbpdb.h"
 #include "pf.h"
 #include "rid.h"
-typedef struct IX_Manager IX_Manager;
-typedef struct IX_IndexHandle IX_IndexHandle;
-typedef struct IX_IndexScan IX_IndexScan;
-struct IX_Manager{
+
+typedef struct _IX_Manager IX_Manager;
+typedef struct _IX_IndexHandle IX_IndexHandle;
+typedef struct _IX_IndexScan IX_IndexScan;
+typedef struct IX_HeadPage{
+	int indexNo;
+	int attrLength;
+	int maxEntryInLeaf;
+	int maxEntryInNLeaf;
+	AttrType attrType;
+	PageNum root;
+
+	char reserved[4096 - 2*sizeof(int) - sizeof(AttrType) - sizeof(PageNum)];
+}IX_HeadPage;
+struct _IX_Manager{
+	PF_Manager* pfm;
 	RC (*CreateIndex)(IX_Manager *this,
 						const char *fileName,
 						int        indexNo,
@@ -33,7 +45,10 @@ struct IX_Manager{
 
 RC initIX_Manager(IX_Manager* this, PF_Manager* pfm);
 
-struct IX_IndexHandle{
+struct _IX_IndexHandle{
+	IX_HeadPage head;
+	PF_FileHandle pffh;
+
     RC (*InsertEntry)     (IX_IndexHandle* this, void *pData, const RID *rid);  // Insert new index entry
     RC (*DeleteEntry)     (IX_IndexHandle* this, void *pData, const RID *rid);  // Delete index entry
     RC (*ForcePages)      (IX_IndexHandle* this);                             // Copy index to disk
@@ -41,7 +56,7 @@ struct IX_IndexHandle{
 
 RC initIX_IndexHandle(IX_IndexHandle* this);
 
-struct IX_IndexScan{
+struct _IX_IndexScan{
 	RC (*OpenScan)		(IX_IndexScan* this,
 								const IX_IndexHandle *idxh,
 								CompOp op,
