@@ -22,6 +22,8 @@ RC SetNpage(PF_FileHandle *this, PageNum pn);
 RC MarkDirty(PF_FileHandle *this, PageNum pageNum);
 RC UnpinPage(PF_FileHandle *this, PageNum pageNum);
 RC ForcePages(PF_FileHandle *this, PageNum pageNum);
+RC DisposePages(PF_FileHandle *this);
+
 PageNum GetNpage(PF_FileHandle *this);
 
 RC GetFirstPage(PF_FileHandle *this, PF_PageHandle *pageHandle) {
@@ -50,7 +52,7 @@ RC GetThisPage(PF_FileHandle *this, PageNum pageNum, PF_PageHandle *pageHandle) 
 	//printf("MRU %d\n", MRU);
 	if (this->npage >= pageNum && pageNum >= 0) {
 		if (theBD->getMap(theBD, strPageNum) == NULL) {
-			fseek(fio, (pageNum+1) * ALL_PAGE_SIZE, SEEK_SET);
+			fseek(fio, (pageNum + 1) * ALL_PAGE_SIZE, SEEK_SET);
 
 			theBD->allocPage(theBD, this->filename, pageNum);
 			char *c = (theBD->lpin_page->pagedata);
@@ -60,6 +62,7 @@ RC GetThisPage(PF_FileHandle *this, PageNum pageNum, PF_PageHandle *pageHandle) 
 			pageHandle->pagenum = pageNum;
 			strcpy(pageHandle->filename, this->filename);
 			theBD->addMap(theBD, strPageNum, theBD->lpin_page);
+			fclose(fio);
 			//			printf("%d%s\n", theBD->getMap(strPageNum, theBD), strPageNum);
 			return (NORMAL);
 
@@ -67,7 +70,7 @@ RC GetThisPage(PF_FileHandle *this, PageNum pageNum, PF_PageHandle *pageHandle) 
 			//在buffer中
 			//分类已经pined还是在unpined链中
 			Page_Buffer *pb = theBD->getMap(theBD, strPageNum);
-			if (pb->pinned >0) {
+			if (pb->pinned > 0) {
 				//分类已经pined
 				pageHandle->page = pb->pagedata;
 				pageHandle->pagenum = pageNum;
@@ -75,6 +78,7 @@ RC GetThisPage(PF_FileHandle *this, PageNum pageNum, PF_PageHandle *pageHandle) 
 					strcpy(pageHandle->filename, this->filename);
 				else
 					return DB_PARAM;
+				theBD->pinPage(theBD, pb);
 			} else {
 				//还是在unpinned链中
 				pageHandle->page = pb->pagedata;
@@ -83,8 +87,9 @@ RC GetThisPage(PF_FileHandle *this, PageNum pageNum, PF_PageHandle *pageHandle) 
 					strcpy(pageHandle->filename, this->filename);
 				else
 					return DB_PARAM;
-				theBD->pinPage(theBD,pb);
+				theBD->pinPage(theBD, pb);
 			}
+			fclose(fio);
 			return (NORMAL);
 		}
 	} else {
@@ -96,15 +101,29 @@ RC GetThisPage(PF_FileHandle *this, PageNum pageNum, PF_PageHandle *pageHandle) 
 RC AllocatePage(PF_FileHandle *this, struct PF_PageHandle *pageHandle) {
 	this->npage++;
 	FILE *wfile = fopen(this->filename, "rb+");
+	if (wfile == NULL) {
+		printf("error in open file %s\n", this->filename);
+	}
 	fseek(wfile, 0, SEEK_SET);
 	fwrite(&this->npage, 4, 1, wfile);
 	fclose(wfile);
-//	printf("get page : %d\n",this->npage);
-	return (GetThisPage(this, this->npage-1, pageHandle));
+	//	printf("get page : %d\n",this->npage);
+	return (GetThisPage(this, this->npage - 1, pageHandle));
 }
 
-RC DisposePage(PF_FileHandle *this, PageNum pageNum) {
-	return 0;
+RC DisposePages(PF_FileHandle *this) {
+	Buffer_Data *theBD = getBuffer_Data();
+	char strPageNum[KEY_SIZE];
+	int i = 0;
+	for (i = 0; i < this->npage; i++) {
+		sprintf(strPageNum, "%d", i);
+		strcat(strPageNum, this->filename);
+		Page_Buffer *pb = theBD->getMap(theBD, strPageNum);
+		if (pb != NULL) {
+			theBD->disposePB(theBD, pb,strPageNum);
+		}
+	}
+	return NORMAL;
 }
 
 RC MarkDirty(PF_FileHandle *this, PageNum pageNum) {
@@ -137,7 +156,7 @@ RC ForcePages(PF_FileHandle *this, PageNum pageNum) {
 	if (pageNum == ALL_PAGES) {
 		int i = 0;
 		for (i = 0; i < this->npage; i++) {
-			sprintf(strPageNum, "%d", pageNum);
+			sprintf(strPageNum, "%d", i);
 			strcat(strPageNum, this->filename);
 			Page_Buffer *pb = theBD->getMap(theBD, strPageNum);
 			if (pb != NULL) {
@@ -196,6 +215,7 @@ RC initPF_FileHandle(PF_FileHandle *this) {
 	this->if_open = 0;
 	this->npage = 0;
 	this->currentPage = 0;
+	this->DisposePages = DisposePages;
 	int i = 0;
 	for (i = 0; i < MAX_FILENAME; i++) {
 		this->filename[i] = '\0';

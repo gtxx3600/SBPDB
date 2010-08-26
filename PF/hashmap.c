@@ -126,21 +126,24 @@ void hmap_delete(hash_map hmap, const char*key) {
 	listnode_t *pk = hmap->key[h];
 	listnode_t *pv = hmap->value[h];
 	while (pk) {
-		if(key==NULL)
-		{
+		if (key == NULL) {
 			printf("key null \n");
 		}
-		if(pk->str == NULL)
-		{
+		if (pk->str == NULL) {
 			printf("str null");
 		}
 		if (strcmp(key, pk->str) == 0) {
 			if (pk == hmap->key[h]) {
 				hmap->key[h] = pk->next;
+				hmap->value[h] = pv->next;
+			}else{
+				printf("aa\n");
 			}
+
 		}
 		pk = pk->next;
 		pv = pv->next;
+
 	}
 
 }

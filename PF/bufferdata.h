@@ -39,6 +39,7 @@ struct Buffer_Data {
 	Page_Buffer* (*getMap)(Buffer_Data *this, char* key);
 	int (*unpinPage)(Buffer_Data *this, Page_Buffer *pb);
 	int (*pinPage)(Buffer_Data *this, Page_Buffer *pb);
+	int (*disposePB)(Buffer_Data *this, Page_Buffer *pb,char* tmp);
 	int (*allocPage)(Buffer_Data *this, char* filename, int pagenum);
 };
 int initBuffer_Data(Buffer_Data *this);
