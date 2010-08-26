@@ -11,12 +11,12 @@
 
 void RM_NextRID(RM_FileScan *this)
 {
-	RID rid = this->crid;
-	rid.slotNum++;
-	if(rid.slotNum >= this->rmfh->slotInOnePage)
+	RID *rid = &this->crid;
+	rid->slotNum++;
+	if(rid->slotNum >= this->rmfh->slotInOnePage)
 	{
-		rid.slotNum = 0;
-		rid.pageNum ++;
+		rid->slotNum = 0;
+		rid->pageNum ++;
 	}
 }
 RC RM_OpenScan(RM_FileScan *this,

@@ -13,21 +13,21 @@
 /*AttrType*/
 #define TYPE_NUM	3
 typedef int AttrType;
-#define INT 		1
-#define STRING	2
-#define FLOT		3
+#define INT 		0
+#define STRING	1
+#define FLOAT		2
 /*Compare Operator*/
 #define OP_NUM	9
 typedef int CompOp;
-#define EQ_OP		1
-#define LT_OP		2
-#define GT_OP		3
-#define LE_OP		4
-#define GE_OP		5
-#define NE_OP		6
-#define NO_OP		7
-#define INC_OP	8
-#define DEC_OP	9
+#define EQ_OP		0
+#define LT_OP		1
+#define GT_OP		2
+#define LE_OP		3
+#define GE_OP		4
+#define NE_OP		5
+#define NO_OP		6
+#define INC_OP	7
+#define DEC_OP	8
 
 #define NEED_SPLIT	99
 #define NEED_UNION	100

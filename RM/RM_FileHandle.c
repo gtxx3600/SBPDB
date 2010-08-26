@@ -126,6 +126,7 @@ SlotNum getAvailableSlot(RM_FileHandle * rmfh, char* pData)
 }
 RC RM_GetRec	(RM_FileHandle* this, const RID *rid, RM_Record *rec)
 {
+	rec->data=NULL;
 	PageNum pageNum;
 	SlotNum slotNum;
 	rid->GetPageNum(rid, &pageNum);
@@ -137,7 +138,7 @@ RC RM_GetRec	(RM_FileHandle* this, const RID *rid, RM_Record *rec)
 	{
 		this->pf_FileHandle->GetThisPage(this->pf_FileHandle, pageNum, &pfpageHandle);
 		pfpageHandle.GetData(&pfpageHandle, &pData);
-		if(pData[this->bitmappos + slotNum/8] & (1 << slotNum % 8)){ //slot not empty
+		if(pData[this->bitmappos + slotNum/8] & (1 << (slotNum % 8))){ //slot not empty
 			rec->data = (char*)malloc(this->recordSize);
 			memcpy(rec->data, &pData[this->pageHeaderLength + this->recordSize * slotNum], this->recordSize);
 			rec->rid.pageNum = pageNum;
@@ -152,7 +153,6 @@ RC RM_GetRec	(RM_FileHandle* this, const RID *rid, RM_Record *rec)
 	}
 	else
 	{
-		printf("pagenum error: ");
 		return DB_PARAM;
 	}
 
