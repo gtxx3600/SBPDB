@@ -51,7 +51,7 @@ RC RM_GetNextRec(RM_FileScan *this, RM_Record *rec)
 	{
 		this->NextRID(this);
 
-		if(this->crid.pageNum >=  this->rmfh->totalPageNum)
+		if(this->crid.pageNum >=  this->rmfh->pf_FileHandle->GetNpage(this->rmfh->pf_FileHandle))
 		{
 			return RM_EOF;
 		}

@@ -73,7 +73,7 @@ RC RM_OpenFile(RM_Manager* this, const char *fileName, struct RM_FileHandle *fil
 		fileHandle->firstFree = *(PageNum*)pData;
 		fileHandle->recordSize = *(RecordSize*)(&pData[sizeof(PageNum)]);
 		fileHandle->slotInOnePage = *(SlotNum*)(&pData[sizeof(PageNum) + sizeof(RecordSize)]);
-		fileHandle->totalPageNum = pffileHandle->GetNpage(pffileHandle);
+		//fileHandle->totalPageNum = pffileHandle->GetNpage(pffileHandle);
 		fileHandle->pageHeaderLength = sizeof(PageNum) + fileHandle->slotInOnePage / 8 + 1;
 		fileHandle->bitmappos = sizeof(PageNum);
 

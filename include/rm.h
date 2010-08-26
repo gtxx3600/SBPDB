@@ -35,7 +35,7 @@ struct RM_FileHandle {
 	int modified;
 	int pageHeaderLength;
 	int bitmappos;
-	PageNum totalPageNum;
+	//PageNum totalPageNum;
 	SlotNum totalSlotNum;
 	SlotNum slotInOnePage;
 	PageNum firstFree;
