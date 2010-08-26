@@ -61,7 +61,7 @@ RC GetThisPage(PF_FileHandle *this, PageNum pageNum, PF_PageHandle *pageHandle) 
 			pageHandle->page = theBD->lpin_page->pagedata;
 			pageHandle->pagenum = pageNum;
 			strcpy(pageHandle->filename, this->filename);
-			theBD->addMap(theBD, strPageNum, theBD->lpin_page);
+			//theBD->addMap(theBD, strPageNum, theBD->lpin_page);
 			fclose(fio);
 			//			printf("%d%s\n", theBD->getMap(strPageNum, theBD), strPageNum);
 			return (NORMAL);
@@ -112,16 +112,14 @@ RC AllocatePage(PF_FileHandle *this, struct PF_PageHandle *pageHandle) {
 }
 
 RC DisposePages(PF_FileHandle *this) {
-	Buffer_Data *theBD = getBuffer_Data();
+	//Buffer_Data *theBD = getBuffer_Data();
 	char strPageNum[KEY_SIZE];
 	int i = 0;
 	for (i = 0; i < this->npage; i++) {
 		sprintf(strPageNum, "%d", i);
 		strcat(strPageNum, this->filename);
-		Page_Buffer *pb = theBD->getMap(theBD, strPageNum);
-		if (pb != NULL) {
-			theBD->disposePB(theBD, pb,strPageNum);
-		}
+		//Page_Buffer *pb = theBD->getMap(theBD, strPageNum);
+		this->UnpinPage(this,i);
 	}
 	return NORMAL;
 }

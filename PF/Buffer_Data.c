@@ -6,7 +6,6 @@
  */
 
 #include "bufferdata.h"
-#include "hashmap.h"
 #include "sbpdb.h"
 Buffer_Data thebuffer;
 int writeBack(Buffer_Data *this, Page_Buffer *pb);
@@ -21,16 +20,16 @@ int allocPage(Buffer_Data *this, char* filename, int pagenum);
 //int getpData(Page_Buffer *this);
 
 Page_Buffer* getMap(Buffer_Data *this, char* key) {
-	return ((Page_Buffer*) hmap_search(this->pagemap, key));
+	return ((Page_Buffer*) getvalue(this->pagemap, key));
 }
 
 int addMap(Buffer_Data *this, char* key, Page_Buffer *pb) {
-	hmap_insert(this->pagemap, key, -1, pb);
+	mapinsert(this->pagemap, key, pb);
 	return 0;
 }
 
 int delMap(Buffer_Data *this, char* key) {
-	hmap_delete(this->pagemap, key);
+	mapdelete(this->pagemap, key);
 	return 0;
 }
 
@@ -163,10 +162,10 @@ int allocPage(Buffer_Data *this, char* filename, int pagenum) {
 	char strpagenum[KEY_LENGTH];
 	sprintf(strpagenum, "%d", pagenum);
 	strcat(strpagenum, filename);
-	pb->key = strpagenum;
+	memcpy(pb->key, strpagenum,KEY_LENGTH);
 	printf("key of pb : %s\n", pb->key);
-	addMap(this, strpagenum, pb);
 	this->lpin_page = pb;
+	addMap(this, pb->key, pb);
 	this->page_num++;
 	this->pin_num++;
 	if (this->page_num > MIN_POOL_SIZE) {
@@ -215,9 +214,7 @@ int disposePB(Buffer_Data *this, Page_Buffer *pb, char* tmp) {
 	} else {
 		pb->prev_page->next_page = NULL;
 	}
-
 	delMap(this, tmp);
-
 	free(pb);
 	this->unpin_num--;
 	this->page_num--;
@@ -238,7 +235,8 @@ int initBuffer_Data(Buffer_Data *this) {
 	this->pin_num = 0;
 	this->unpin_num = 0;
 	this->writeBack = writeBack;
-	hmap_create(&this->pagemap, 40000);
+	this->pagemap = (map*) malloc(sizeof(map));
+	initMap(this->pagemap);
 	this->unpinPage = unpinPage;
 	this->pinPage = pinPage;
 	this->copyBack = copyBack;

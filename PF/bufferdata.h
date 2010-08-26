@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "hashmap.h"
+#include "map.h"
 #include "sbpdb.h"
 #define MIN_POOL_SIZE 40
 #define KEY_LENGTH 20
@@ -29,7 +30,7 @@ struct Buffer_Data {
 	int pin_num;
 	int unpin_num;
 	int page_num;
-	hash_map pagemap;
+	map* pagemap;
 	int init;
 	int (*writeBack)(Buffer_Data *this,Page_Buffer *pb);
 	int (*copyBack)(Buffer_Data *this,Page_Buffer *pb);
