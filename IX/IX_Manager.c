@@ -9,7 +9,7 @@
 #include <assert.h>
 #include "BTNode.h"
 
-
+extern int (**typeOP[TYPE_NUM])(void* left,void*right,int len);
 RC IX_CreateIndex
 (IX_Manager *this,
 const char *fileName,
@@ -17,6 +17,7 @@ int        indexNo,
 AttrType   attrType,
 int        attrLength)
 {
+	int (**funcOP)(void* left,void*right,int len) = typeOP[attrType];
 	char tmp[2*MAX_FILENAME];
 	char* pData;
 	if(strlen(fileName) >= MAX_FILENAME)
@@ -30,7 +31,9 @@ int        attrLength)
 	}
 	int ret;
 	char tmpvalue[2*attrLength];
+	char tmpvalue2[2*attrLength];
 	bzero(tmpvalue,2*attrLength);
+	bzero(tmpvalue2,2*attrLength);
 #include "NODEL.h"
 	PF_FileHandle pffh;
 	initPF_FileHandle(&pffh);
@@ -52,12 +55,10 @@ int        attrLength)
 	{
 		goto err_exit;
 	}
-
 	/* init head page */
 	if((ret = this->pfm->OpenFile(this->pfm, tmp, &pffh))!= NORMAL)
 	{
 		goto err_exit;
-
 	}
 	if((ret = pffh.AllocatePage(&pffh, &headph)) != NORMAL)
 	{
@@ -90,8 +91,38 @@ int        attrLength)
 	nb1->totalEntry = nb2->totalEntry = 1;
 	nl1->totalEntry = nl2->totalEntry = nl3->totalEntry = nl4->totalEntry = 1;
 
+	funcOP[INC_OP](tmpvalue, tmpvalue2, attrLength);
+	funcOP[INC_OP](tmpvalue2, tmpvalue, attrLength);
+	memcpy(nb1->values, tmpvalue, attrLength);
+	funcOP[INC_OP](tmpvalue, tmpvalue2, attrLength);
+	memcpy(nr->values, tmpvalue2, attrLength);
+	funcOP[INC_OP](tmpvalue2, tmpvalue, attrLength);
+	memcpy(nb2->values, tmpvalue, attrLength);
+	nr->pointers[0].page = b1.pagenum;
+	nr->pointers[1].page = b2.pagenum;
 
-err_exit1:
+	nb1->pointers[0].page = l1.pagenum;
+	nb1->pointers[1].page = l2.pagenum;
+
+	nb2->pointers[0].page = l3.pagenum;
+	nb2->pointers[1].page = l4.pagenum;
+	pffh.MarkDirty(&pffh, r.pagenum);
+	pffh.MarkDirty(&pffh, b1.pagenum);
+	pffh.MarkDirty(&pffh, b2.pagenum);
+	pffh.MarkDirty(&pffh, l1.pagenum);
+	pffh.MarkDirty(&pffh, l2.pagenum);
+	pffh.MarkDirty(&pffh, l3.pagenum);
+	pffh.MarkDirty(&pffh, l4.pagenum);
+
+	pffh.UnpinPage(&pffh, r.pagenum);
+	pffh.UnpinPage(&pffh, b1.pagenum);
+	pffh.UnpinPage(&pffh, b2.pagenum);
+	pffh.UnpinPage(&pffh, l1.pagenum);
+	pffh.UnpinPage(&pffh, l2.pagenum);
+	pffh.UnpinPage(&pffh, l3.pagenum);
+	pffh.UnpinPage(&pffh, l4.pagenum);
+
+
 	pffh.MarkDirty(&pffh, headph.pagenum);
 	pffh.UnpinPage(&pffh, headph.pagenum);
 	pffh.ForcePages(&pffh, ALL_PAGES);
@@ -148,7 +179,7 @@ RC IX_CloseIndex
 (IX_Manager *this,
 IX_IndexHandle *indexHandle)
 {
-	return NORMAL;
+	return this->pfm->CloseFile(this->pfm, &indexHandle->pffh);
 }
 
 RC initIX_Manager(IX_Manager* this, PF_Manager* pfm)
