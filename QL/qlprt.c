@@ -64,6 +64,7 @@ void prtRelAttrList(RelAttrList *al, int d) {
 }
 
 void prtValue(Value *v, int d) {
+	indent(d);
 	switch (v->type) {
 	case INT:
 		DEPRT("INT %d\n", *(int *)(v->data));
@@ -90,7 +91,7 @@ void prtValueList(ValueList *vl, int d) {
 }
 
 void prtRelAttrValue(RelAttrValue *av, int d) {
-	if (isValue) {
+	if (av->isValue) {
 		prtValue(av->u.v, d);
 	} else {
 		prtRelAttr(av->u.a, d);
@@ -102,7 +103,7 @@ void prtRelAttrValueList(RelAttrValueList *avl, int d) {
 	DEPRT("RelAttrValueList\n");
 	d += DD;
 	while (avl) {
-		prtRelAttrValue(avl, d);
+		prtRelAttrValue(avl->av, d);
 		avl = avl->next;
 	}
 }
@@ -202,7 +203,7 @@ void prtProjectionExp(struct projection_exp *pe, int d) {
 	indent(d);
 	DEPRT("ProjectionExp\n");
 	d += DD;
-	prtRelAttrValueList(pe->avl, d);
+	prtRelAttrList(pe->al, d);
 	prtExpression(pe->exp, d);
 }
 
@@ -218,8 +219,8 @@ void prtProductExp(struct product_exp *pe, int d) {
 	indent(d);
 	DEPRT("ProductExp\n");
 	d += DD;
-	prtExpression(de->left, d);
-	prtExpression(de->right, d);
+	prtExpression(pe->left, d);
+	prtExpression(pe->right, d);
 }
 
 void prtNaturalJoinExp(struct natural_join_exp *nje, int d) {
@@ -230,7 +231,7 @@ void prtNaturalJoinExp(struct natural_join_exp *nje, int d) {
 	prtExpression(nje->right, d);
 }
 
-void prtExpression(Expression exp, int d) {
+void prtExpression(Expression *exp, int d) {
 	switch (exp->kind) {
 	case Relation:
 		indent(d);

@@ -62,6 +62,7 @@ typedef int RC;
 #define	IX_FULL				21
 
 #define	SM_NODIR				22
+#define SM_NOREL				30
 
 #define	QL_WRONGVALUENUM		23
 #define	QL_WRONGVALUETYPE		24

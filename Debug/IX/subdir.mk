@@ -4,16 +4,19 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../IX/BTNode.c \
 ../IX/IX_IndexHandle.c \
 ../IX/IX_IndexScan.c \
 ../IX/IX_Manager.c 
 
 OBJS += \
+./IX/BTNode.o \
 ./IX/IX_IndexHandle.o \
 ./IX/IX_IndexScan.o \
 ./IX/IX_Manager.o 
 
 C_DEPS += \
+./IX/BTNode.d \
 ./IX/IX_IndexHandle.d \
 ./IX/IX_IndexScan.d \
 ./IX/IX_Manager.d 

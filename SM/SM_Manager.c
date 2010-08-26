@@ -42,6 +42,26 @@ void SM_CloseCat(SM_Manager *self) {
 	self->rmm->CloseFile(self->rmm, &self->attrFile);
 }
 
+RC SM_GetAttrCats(SM_Manager *self, char *relName,
+		AttrCat **ac, int *size) {
+	int i, attrNum, offset = 0, isFound = 0;
+    for (i = 0; i < self->relCount; i++)
+        if (strcmp(self->relRecords[i].relName, relName) == 0) {
+        	attrNum = self->relRecords[i].attrCount;
+        	isFound = 1;
+        	break;
+        }
+    if (!isFound) return SM_NOREL;
+    *size = attrNum;
+    *ac = calloc(sizeof(AttrCat), attrNum);
+    for (i = 0; i < self->attrCount; i++)
+    	if (strcmp(self->attrRecords[i].relName, relName) == 0) {
+    		memcpy(*ac + offset, &self->attrRecords[i], sizeof(AttrCat));
+    		offset++;
+    	}
+    return NORMAL;
+}
+
 RC SM_OpenDb(SM_Manager *self, char *dbName) {
 	if (chdir(dbName) < 0) {
 		return SM_NODIR;
@@ -55,6 +75,7 @@ RC SM_OpenDb(SM_Manager *self, char *dbName) {
 
 RC SM_CloseDb(SM_Manager *self) {
 	SM_CloseCat(self);
+    return NORMAL;
 }
 
 #define MAXSCP(dst, s, max) do {\
@@ -64,12 +85,15 @@ RC SM_CloseDb(SM_Manager *self) {
 
 RC AttrCatSetRelName(AttrCat *ac, char *s) {
 	MAXSCP(ac->relName, s, MAXNAME);
+    return NORMAL;
 }
 RC AttrCatSetAttrName(AttrCat *ac, char *s) {
 	MAXSCP(ac->attrName, s, MAXNAME);
+    return NORMAL;
 }
 RC RelCatSetRelName(RelCat *rc, char *s) {
 	MAXSCP(rc->relName, s, MAXNAME);
+    return NORMAL;
 }
 
 RC SM_CreateTable(SM_Manager *self, char *relName, AttrInfo *attributes) {

@@ -8,9 +8,9 @@
 
 #include "lex.c"
 
-Expression *translateQuery(RelAttrList *al, RelList *rl, Condition *cond) {
+Expression *translateQuery(RelAttrList *al, IDList *rl, Condition *cond) {
 	Expression *rels = NULL;
-	RelList *p = rl;
+	IDList *p = rl;
 	Expression *ret = NEW(Expression);
 	ret->kind = ProjectionExp;
 	ret->u.proje = NEW(struct projection_exp);
@@ -28,20 +28,21 @@ Expression *translateQuery(RelAttrList *al, RelList *rl, Condition *cond) {
 			left = rels;
 			right = NEW(Expression);
 			right->kind = Relation;
-			right->u.rele = NEW(struct relation);
-			right->u.rele->id = p->id;
+			right->u.rel = NEW(struct relation);
+			right->u.rel->id = p->id;
 			tmp->u.prode->left = left;
 			tmp->u.prode->right = right;
 			rels = tmp;
 		} else {
 			rels = NEW(Expression);
 			rels->kind = Relation;
-			rels->u.rele = NEW(struct relation);
-			rels->u.rele->id = p->id;
+			rels->u.rel = NEW(struct relation);
+			rels->u.rel->id = p->id;
 		}
 		p = p->next;
 	}
-	return NULL;
+	ret->u.proje->exp->u.sele->exp = rels;
+	return ret;
 }
 
 void yyerror(const char *str) {
@@ -61,7 +62,7 @@ QL_Manager *qlManager;
 
 %union {
     AttrInfo *attrInfo;
-    AttrType *attrType;
+    AttrType attrType;
     Value *value;
 	ValueList *valueList;
     RelAttr *relAttr;
@@ -119,37 +120,37 @@ command:
 
 exit:
 	EXIT SEMICOLON {
-        smManager->Exit();
+        SM_Exit(smManager);
     }
 	;
 
 help:
 	HELP SEMICOLON {
-        smManager->Help();
+        SM_Help(smManager);
     }
 	;
 
 create_table:
 	CREATE TABLE ID LBRACE attr_def_list RBRACE SEMICOLON {
-		smManager->CreateTable(smManager, $3, $5);
+		SM_CreateTable(smManager, $3, $5);
     }
 	;
 
 drop_table:
 	DROP TABLE ID SEMICOLON {
-        smManager->DropTable(smManager, $3);
+        SM_DropTable(smManager, $3);
     }
 	;
 
 create_view:
 	CREATE VIEW ID AS query SEMICOLON {
-        smManager->CreateView(smManager, $3, $5); // TODO
+        SM_CreateView(smManager, $3, $5); // TODO
     }
 	;
 
 drop_view:
 	DROP VIEW ID SEMICOLON {
-        smManager->DropView(smManager, $3); // TODO
+        SM_DropView(smManager, $3); // TODO
     }
 	;
 
@@ -188,7 +189,7 @@ type:
 
 insert:
     INSERT INTO ID VALUES LBRACE value_list RBRACE SEMICOLON {
-		qlManager->Insert(qlManager, $3, $6);
+		QL_Insert(qlManager, $3, $6);
     }
 	;
 
@@ -199,7 +200,7 @@ value_list:
 		$$->next = NULL;
 	}
     | value_list COMMA value {
-        Value *p = GET_LAST(ValueList, $1, next);
+        ValueList *p = GET_LAST(ValueList, $1, next);
 		p->next = NEW(ValueList);
 		p->next->v = $3;
 		p->next->next = NULL;
@@ -227,13 +228,13 @@ value:
 
 delete:
     DELETE FROM ID WHERE condition SEMICOLON {
-        qlManager->Delete(qlManager, $3, NULL);
+        QL_Delete(qlManager, $3, NULL);
     }
 	| DELETE FROM ID SEMICOLON {
-        qlManager->Delete(qlManager, $3, NULL);
+        QL_Delete(qlManager, $3, NULL);
     }
 	| DELETE STAR FROM ID SEMICOLON {
-        qlManager->Delete(qlManager, $4, NULL);
+        QL_Delete(qlManager, $4, NULL);
     }
 	;
 
@@ -245,7 +246,7 @@ query:
 
 select:
     query SEMICOLON {
-		qlManager->Select(qlManager, $1);
+		QL_Select(qlManager, $1, $1->u.proje->al);
     };
 
 select_attr:

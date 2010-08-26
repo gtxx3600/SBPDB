@@ -4,22 +4,22 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../QL/QL_Manager.c \
 ../QL/gram.c \
-../QL/ql.c \
 ../QL/qlprt.c \
 ../QL/query.c \
 ../QL/translate.c 
 
 OBJS += \
+./QL/QL_Manager.o \
 ./QL/gram.o \
-./QL/ql.o \
 ./QL/qlprt.o \
 ./QL/query.o \
 ./QL/translate.o 
 
 C_DEPS += \
+./QL/QL_Manager.d \
 ./QL/gram.d \
-./QL/ql.d \
 ./QL/qlprt.d \
 ./QL/query.d \
 ./QL/translate.d 

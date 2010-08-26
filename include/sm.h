@@ -53,6 +53,8 @@ struct SM_Manager {
 
 RC SM_OpenDb(SM_Manager *self, char *dbName);
 RC SM_CloseDb(SM_Manager *self);
+RC SM_GetAttrCats(SM_Manager *self, char *relName,
+		AttrCat **ac, int *size);
 RC SM_CreateTable(SM_Manager *self, char *relName, AttrInfo *attributes);
 RC SM_DropTable(SM_Manager *self, char *relName);
 RC SM_CreateView(SM_Manager *self, char *viewName, Expression query);
