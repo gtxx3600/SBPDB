@@ -1,5 +1,5 @@
-#ifndef ALGEBRA_H
-#define ALGEBRA_H
+#ifndef PLANNER_H
+#define PLANNER_H
 
 #include "ql.h"
 
@@ -7,6 +7,11 @@ typedef struct expression Expression;
 
 struct relation {
 	char *id;
+	AttrSel *as;
+	int isIndexed;
+	union {
+		RM_FileScan *fs;
+	} u;
 };
 
 struct union_exp {
@@ -25,7 +30,7 @@ struct difference_exp {
 };
 
 struct projection_exp {
-	RelAttrValueList *avl;
+	RelAttrList *al;
 	struct expression *exp;
 };
 

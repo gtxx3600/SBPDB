@@ -5,38 +5,60 @@
 #include "planner.h"
 
 #include "rm.h"
-#include "ixm.h"
+#include "ix.h"
 
-typedef struct AttrInfo AttrInfo;
 typedef struct SM_Manager SM_Manager;
+typedef struct AttrInfo AttrInfo;
+typedef struct RelCat RelCat;
+typedef struct AttrCat AttrCat;
 
-#define RELCAT_RSIZE (MAXNAME + 1 + sizeof(int) * 3)
-#define ATTRCAT_RSIZE ((MAXNAME+1) * 2 + sizeof(int) * 3 + sizeof(AttrType))
+#define RELCAT_RSIZE (sizeof(RelCat) - sizeof(RID))
+#define ATTRCAT_RSIZE (sizeof(AttrCat) - sizeof(RID))
 
 struct AttrInfo {
+	char *relname;
 	char *name;
 	AttrType type;
 	int size;
 	AttrInfo *next;
 };
 
+struct RelCat {
+	char relName[MAXNAME+1];
+	int tupleLength;
+	int attrCount;
+	int indexCount;
+	RID rid;
+};
+
+struct AttrCat {
+	char relName[MAXNAME+1];
+	char attrName[MAXNAME+1];
+	int offset;
+	AttrType attrType;
+	int attrLength;
+	int indexNo;
+	RID rid;
+};
+
 struct SM_Manager {
 	IX_Manager *ixm;
 	RM_Manager *rmm;
 	RM_FileHandle attrFile, relFile;
-	RM_Record *relRecord, *attrRecord;
+	RelCat *relRecords;
+	AttrCat *attrRecords;
 	int relCount, attrCount;
-
-	RC (*OpenDb)(SM_Manger *self, char *dbName);
-	RC (*CloseDb)(SM_Manger *self);
-	RC (*CreateTable)(SM_Manger *self, char *relName, AttrInfo *attributes);
-	RC (*DropTable)(SM_Manger *self, char *relName);
-	RC (*CreateView)(SM_Manger *self, char *viewName, Expression query);
-	RC (*DropView)(SM_Manager *self, char *viewName);
-	RC (*Help)();
-	RC (*Exit)(SM_Manger *self);
+	int relmax, attrmax;
 };
 
+RC SM_OpenDb(SM_Manager *self, char *dbName);
+RC SM_CloseDb(SM_Manager *self);
+RC SM_CreateTable(SM_Manager *self, char *relName, AttrInfo *attributes);
+RC SM_DropTable(SM_Manager *self, char *relName);
+RC SM_CreateView(SM_Manager *self, char *viewName, Expression query);
+RC SM_DropView(SM_Manager *self, char *viewName);
+RC SM_Help(SM_Manager *self);
+RC SM_Exit(SM_Manager *self);
 RC initSM_Manager(SM_Manager *smm, IX_Manager *ixm, RM_Manager *rmm);
 
 #endif

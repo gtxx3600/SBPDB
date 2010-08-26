@@ -8,7 +8,7 @@
 
 WS      [\r\n\ \t\b\f]
 DIGIT   [0-9]
-ID      [_A-Za-z][_A-Za-z0-9]*
+ID      [A-Za-z][_A-Za-z0-9]*
 
 %x STR
 

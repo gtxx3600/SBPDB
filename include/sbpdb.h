@@ -23,6 +23,8 @@ typedef int CompOp;
 #define GE_OP		5
 #define NE_OP		6
 #define NO_OP		7
+/*SM*/
+#define MAXNAME 24
 /*Client Hint*/
 typedef enum ClientHint {
 	NO_HINT
@@ -59,6 +61,10 @@ typedef int RC;
 #define	QL_WRONGVALUENUM		21
 #define	QL_WRONGVALUETYPE		22
 #define	QL_WRONGATTRTYPE		23
+#define QL_ATTRNOTFOUND			24
+#define QL_ATTRARLREADYFOUND	25
+#define QL_TUPLENOTFOUND		26
+#define QL_NOTSUPPORT			27
 // Negative
 #define	DB_PARAM				-1
 #define	DB_INTERNAL			-2

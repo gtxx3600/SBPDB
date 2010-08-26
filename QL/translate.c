@@ -22,15 +22,24 @@ Expression *tranExp(Expression *exp) {
 	case SelectionExp:
 		exp->u.sele->exp = tranExp(exp->u.sele->exp);
 		switch (exp->u.sele->cond->kind) {
-		case InCond:
 		case CompOpCond:
+			exp->u.sele->exp = transExp(exp->u.sele->exp);
 			return exp;
-		case AndCond:
+		case AndCond: {
 			Expression *e = calloc(sizeof(Expression), 1);
-			e.kind = SelectionExp;
-			
+			e->kind = SelectionExp;
+			e->u.sele->cond = exp->u.sele->cond->u.ac->left;
+			exp->u.sele->cond = exp->u.sele->cond->u.ac->right;
+			exp->u.sele->exp = e;
+			exp = transExp(exp);
+			return exp;
+		}
+		case InCond:
 		case OrCond:
 		case NotCond:
+		default:
+			fprintf(stderr, "not support\n");
+			return NULL;
 		}
 	case ProductExp:
 		exp->u.prode->left = tranExp(exp->u.prode->left);
@@ -40,5 +49,8 @@ Expression *tranExp(Expression *exp) {
 		exp->u.natje->left = tranExp(exp->u.natje->left);
 		exp->u.natje->right = tranExp(exp->u.natje->right);
 		return exp;
+	default:
+		fprintf(stderr, "not support\n");
+		return NULL;
 	}
 }

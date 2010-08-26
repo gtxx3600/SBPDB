@@ -1,20 +1,52 @@
 #ifndef QL_H
 #define QL_H
 
+#include "sbpdb.h"
 #include "planner.h"
+
+#include "rm.h"
+#include "sm.h"
+#include "ix.h"
 
 typedef struct IDList IDList;
 typedef struct RelAttr RelAttr;
 typedef struct RelAttrList RelAttrList;
 typedef struct Value Value;
 typedef struct ValueList ValueList;
+typedef struct RelAttrValue RelAttrValue;
+typedef struct RelAttrValueList RelAttrValueList;
 typedef struct Condition Condition;
+typedef struct InCondition InCondition;
 typedef struct CompOpCondition CompOpCondition;
 typedef struct AndCondition AndCondition;
 typedef struct OrCondition OrCondition;
 typedef struct NotCondition NotCondition;
 
-typedef enum CompOp CompOp;
+typedef struct QL_Manager QL_Manager;
+typedef struct QL_Tuple QL_Tuple;
+
+#define NEW(type) \
+	calloc(sizeof(type), 1)
+
+#define GET_LAST(type, first, next) ({ \
+	(type *) __p = first; \
+	while (__p->next) __p = __p->next; \
+	__p; })
+
+typedef struct AttrSel AttrSel
+struct AttrSel {
+	char *relName;
+	char *attrName;
+	int offset;
+	AttrType attrType;
+	int attrLength;
+	AttrSel *next;
+};
+
+struct QL_Tuple {
+	RM_Record *rmr;
+	AttrSel *as;
+};
 
 struct IDList {
 	char *id;
@@ -54,22 +86,13 @@ struct RelAttrValueList {
 	RelAttrValueList *next;
 };
 
-enum CompOp {
-	EQ_OP,
-	LT_OP,
-	GT_OP,
-	LE_OP,
-	GE_OP,
-	NE_OP,
-};
-
 struct InCondition {
 	RelAttrValueList *avl;
 	Expression *rel;
 };
 
 struct CompOpCondition {
-	enum CompOp op;
+	CompOp op;
 	RelAttrValue *left;
 	RelAttrValue *right;
 };

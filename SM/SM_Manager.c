@@ -1,9 +1,17 @@
 #include <stdlib.h>
+#include <unistd.h>
 
+#include "array.h"
 #include "rm.h"
 #include "sm.h"
 
-void LoadCathe(SM_Manager *self) {
+#define RELARRCHECK(size) \
+	ARRCHECK(self->relRecords, RelCat, size, self->relmax)
+
+#define ATTRARRCHECK(size) \
+	ARRCHECK(self->attrRecords, AttrCat, size, self->attrmax)
+
+void LoadCat(SM_Manager *self) {
 	RM_FileScan relScan, attrScan;
 	initRM_FileScan(&relScan);
 	initRM_FileScan(&attrScan);
@@ -11,94 +19,118 @@ void LoadCathe(SM_Manager *self) {
 			INT, 0, 0, NO_OP, NULL, NO_HINT);
 	RM_Record rec;
 	initRM_Record(&rec);
-	while (relScan.GetNextRec(&rec) == NORMAL) {
-		int i = relCount++;
+	while (relScan.GetNextRec(&relScan, &rec) == NORMAL) {
+		int i = self->relCount++;
+		RELARRCHECK(i);
 		self->relRecords[i].rid = rec.rid;
-		self->relRecords[i].pData = malloc(RELCAT_RSIZE);
-		memcpy(self->relRecords[i].pData, rec.pData, RELCAT_SIZE);		
+		memcpy(&(self->relRecords[i]), rec.data, RELCAT_RSIZE);
 	}
-	relScan.CloseScan();
+	relScan.CloseScan(&relScan);
 	attrScan.OpenScan(&attrScan, &(self->attrFile), 
 			INT, 0, 0, NO_OP, NULL, NO_HINT);
-	while (attrScan.GetNextRec(&rec) == NORMAL) {
-		int i = attrCount++;
+	while (attrScan.GetNextRec(&attrScan, &rec) == NORMAL) {
+		int i = self->attrCount++;
+		ATTRARRCHECK(i);
 		self->attrRecords[i].rid = rec.rid;
-		self->attrRecords[i].pData = malloc(ATTRCAT_RSIZE);
-		memcpy(self->attrRecords[i].pData, rec.pData, ATTRCAT_RSIZE);
+		memcpy(&(self->attrRecords[i]), rec.data, ATTRCAT_RSIZE);
 	}
-	attrScan.CloseScan();
+	attrScan.CloseScan(&attrScan);
+}
+
+void SM_CloseCat(SM_Manager *self) {
+	self->rmm->CloseFile(self->rmm, &self->relFile);
+	self->rmm->CloseFile(self->rmm, &self->attrFile);
 }
 
 RC SM_OpenDb(SM_Manager *self, char *dbName) {
 	if (chdir(dbName) < 0) {
 		return SM_NODIR;
 	} else {
-		self->rmm->OpenFile("relcat", relFile);
-		self->rmm->OpenFile("attrcat", attrFile);
-		LoadCathe(self);
+		self->rmm->OpenFile(self->rmm, "relcat", &(self->relFile));
+		self->rmm->OpenFile(self->rmm, "attrcat", &(self->attrFile));
+		LoadCat(self);
 		return NORMAL;
 	}
 }
 
+RC SM_CloseDb(SM_Manager *self) {
+	SM_CloseCat(self);
+}
+
+#define MAXSCP(dst, s, max) do {\
+	strncpy(dst, s, max); \
+	dst[max] = 0;\
+} while (0)
+
+RC AttrCatSetRelName(AttrCat *ac, char *s) {
+	MAXSCP(ac->relName, s, MAXNAME);
+}
+RC AttrCatSetAttrName(AttrCat *ac, char *s) {
+	MAXSCP(ac->attrName, s, MAXNAME);
+}
+RC RelCatSetRelName(RelCat *rc, char *s) {
+	MAXSCP(rc->relName, s, MAXNAME);
+}
+
 RC SM_CreateTable(SM_Manager *self, char *relName, AttrInfo *attributes) {
-	RID rid;
-	int recordSize = 0;
+	int recordSize = 0, attrNum = 0;
 	AttrInfo *p;
 	for (p = attributes; p; p = p->next) {
 		int j = self->attrCount++;
-		self->attrRecords[j].pData = malloc(ATTRCAT_RSIZE);
-		AttrSetRelName(&(self->attrRecords[j]), relName);
-        AttrSetAttrName(&(self->attrRecords[j]), p->attrName);
-        AttrSetOffset(&(self->attrRecords[j]), recordSize);
-        AttrSetAttrType(&(self->attrRecords[j]), p->attrType);
-        AttrSetAttrLength(&(self->attrRecords[j]), p->attrLength);
-        AttrSetIndexNo(&(self->attrRecords[j]), -1);
-        self->attrFile.InsertRec(&(self->attrFile), attrRecords[j].pData, 
-				rid);
-        self->attrFile.ForcePages(&(self->attrFile));
-        self->attrRecords[j].rid = rid;
-
-        recordSize += p->attrLength;
+		attrNum++;
+		AttrCat actmp;
+		AttrCatSetRelName(&actmp, relName);
+		AttrCatSetAttrName(&actmp, p->name);
+		actmp.offset = recordSize;
+		actmp.attrType = p->type;
+		actmp.attrLength = p->size;
+		actmp.indexNo = -1;
+        self->attrFile.InsertRec(&(self->attrFile), (char *)&actmp,
+				&actmp.rid);
+        self->attrFile.ForcePages(&(self->attrFile), ALL_PAGES);
+		ATTRARRCHECK(j);
+        memcpy(&(self->attrRecords[j]), &actmp, sizeof(AttrCat));
+        recordSize += p->size;
     }
 
     self->rmm->CreateFile(self->rmm, relName, recordSize);
 
-    int k = relCount++;
-    self->relRecords[k].pData = malloc(RELCAT_RSIZE);
-    RelSetRelName(&(self->relRecords[k]), relName);
-    RelSetTupleLength(&(self->relRecords[k]), recordSize);
-    RelSetAttrCount(&(self->relRecords[k]), self->attrCount);
-    RelSetIndexCount(&(self->relRecords[k]), 0);
-    self->relFile.InsertRec(&(self->relFile), relRecords[k].pData, rid);
-    self->relFile.ForcePages(&(self->relFile));
-    self->relRecords[k].rid = rid;
+    int k = self->relCount++;
+    RelCat rctmp;
+    RelCatSetRelName(&rctmp, relName);
+    rctmp.tupleLength = recordSize;
+    rctmp.attrCount = attrNum;
+    rctmp.indexCount = 0;
+    self->relFile.InsertRec(&(self->relFile), (char *)&rctmp, &rctmp.rid);
+    self->relFile.ForcePages(&(self->relFile), ALL_PAGES);
+	RELARRCHECK(k);
+    memcpy(&(self->relRecords[k]), &rctmp, sizeof(RelCat));
 	return NORMAL;
 }
 
 RC SM_DropTable(SM_Manager *self, char *relName) {
 	int i;
-    self->rmm->DestroyFile(relName);
+    self->rmm->DestroyFile(self->rmm, relName);
     for (i = 0; i < self->relCount; i++)
-        if (strcmp(RelGetRelName(&relRecords[i]), 
+        if (strcmp(self->relRecords[i].relName,
 					relName) == 0) {
             self->relFile.DeleteRec(&(self->relFile), 
-					self->relRecords[i].rid);
+					&self->relRecords[i].rid);
 			int j;
-            for (j = 0; j < RelGetIndexCount(
-					&(self->relRecords[i])); j++)
+            for (j = 0; j < self->relRecords[i].indexCount; j++)
                 self->ixm->DestroyIndex(self->ixm, relName, j);
         }
-    self->relFile.ForcePages(&(self->relFile));
+    self->relFile.ForcePages(&(self->relFile), ALL_PAGES);
     for (i = 0; i < self->attrCount; i++)
-        if (strcmp(AttrGetRelName(&(self->attrRecords[i])), relName) == 0)
+        if (strcmp(self->attrRecords[i].relName, relName) == 0)
             self->attrFile.DeleteRec(&(self->attrFile), 
-					self->attrRecords[i].rid);
-    self->attrFile.ForcePages(&(self->attrFile));
+					&self->attrRecords[i].rid);
+    self->attrFile.ForcePages(&(self->attrFile), ALL_PAGES);
     LoadCat(self);
 	return NORMAL;
 }
 
-RC SM_Help() {
+RC SM_Help(SM_Manager *self) {
 	printf("qs-IHS-IN\n");
 	return NORMAL;
 }
@@ -107,15 +139,10 @@ RC SM_Exit(SM_Manager *self) {
 	return NORMAL;
 }
 
-RC initSM_Manager(SM_Manager *smm, IX_Manager *ixm, RM_Manager *rmm) {
-	smm->ixm = ixm;
-	smm->rmm = rmm;
-	smm->OpenDb = SM_OpenDb;
-	smm->CreateTable = SM_CreateTable;
-	smm->DropTable = SM_DropTable;
-	smm->CreateView = SM_CreateView;
-	smm->DropView = SM_DropView;
-	smm->Help = SM_Help;
-	smm->Exit = SM_Exit;
+RC initSM_Manager(SM_Manager *self, IX_Manager *ixm, RM_Manager *rmm) {
+	self->ixm = ixm;
+	self->rmm = rmm;
+	self->relmax = 0;
+	self->attrmax = 0;
 	return 0;
 }

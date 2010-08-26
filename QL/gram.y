@@ -8,21 +8,13 @@
 
 #include "lex.c"
 
-#define NEW(type) \
-	calloc(sizeof(type), 1)
-
-#define GET_LAST(type, first, next) ({ \
-	(type *) __p = first; \
-	while (__p->next) __p = __p->next; \
-	__p; })
-
-Expression *translateQuery(RelAttrList *avl, RelList *rl, Condition *cond) {
+Expression *translateQuery(RelAttrList *al, RelList *rl, Condition *cond) {
 	Expression *rels = NULL;
 	RelList *p = rl;
 	Expression *ret = NEW(Expression);
 	ret->kind = ProjectionExp;
 	ret->u.proje = NEW(struct projection_exp);
-	ret->u.proje->avl = avl;
+	ret->u.proje->al = al;
 	ret->u.proje->exp = NEW(Expression);
 	ret->u.proje->exp->kind = SelectionExp;
 	ret->u.proje->exp->u.sele = NEW(struct selection_exp);

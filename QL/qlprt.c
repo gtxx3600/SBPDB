@@ -6,10 +6,10 @@
 
 #define __QL_DEBUG
 #ifdef __QL_DEBUG
-#define DEPRT(format, ...) \
-	fprintf(stderr, format, __VA_ARGS__);
+#define DEPRT(...) \
+	fprintf(stderr, __VA_ARGS__)
 #else
-#define DEPRT(format, ...)
+#define DEPRT(...)
 #endif
 
 #define DD 2
@@ -39,7 +39,7 @@ void prtIDList(IDList *il, int d) {
 	d += DD;
 	while (il) {
 		indent(d);
-		DEPRT("%s\n", id);
+		DEPRT("%s\n", il->id);
 		il = il->next;
 	}
 }
@@ -65,13 +65,13 @@ void prtRelAttrList(RelAttrList *al, int d) {
 
 void prtValue(Value *v, int d) {
 	switch (v->type) {
-	case INT_T:
+	case INT:
 		DEPRT("INT %d\n", *(int *)(v->data));
 		break;
-	case STRING_T:
+	case STRING:
 		DEPRT("STRING %s\n", (char *)(v->data));
 		break;
-	case FLOAT_T:
+	case FLOAT:
 		DEPRT("FLOAT %f\n", *(float *)(v->data));
 		break;
 	default:
