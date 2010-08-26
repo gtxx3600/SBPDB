@@ -17,7 +17,6 @@ RC PF_GetData(PF_PageHandle *this, char **pData) {
 
 RC PF_GetPageNum(PF_PageHandle *this, PageNum *pageNum) {
 	*pageNum = this->pagenum;
-	printf("%d", *pageNum);
 	return NORMAL;
 }
 

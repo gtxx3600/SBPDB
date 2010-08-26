@@ -6,17 +6,19 @@
  */
 
 #include "ix.h"
-typedef struct NODEENTRY{
+typedef struct EntryValue{
+	char value[attrLength];
+}EntryValue;
+typedef struct EntryPointer{
 	PageNum page;
 	SlotNum slot;
-	char value[attrLength];
-}NODEENTRY;
-int ENTRYSINBTNODE = (ALL_PAGE_SIZE-sizeof(PageNum)-2*sizeof(int))/sizeof(NODEENTRY);
+}EntryPointer;
+int ENTRYSINBTNODE = (ALL_PAGE_SIZE - sizeof(EntryPointer) - 2*sizeof(int))/(sizeof(EntryValue) + sizeof(EntryPointer));
 typedef struct NODE{
 	int level;
 	int totalEntry;
-	PageNum brother;
-	NODEENTRY entrys[ENTRYSINBTNODE];
-	char reserved[4096 - ENTRYSINBTNODE*sizeof(NODEENTRY) - sizeof(PageNum) - 2*sizeof(int)];
+	EntryValue values[ENTRYSINBTNODE];
+	EntryPointer pointers[ENTRYSINBTNODE];
+	char reserved[4096 - ENTRYSINBTNODE*(sizeof(EntryValue) + sizeof(EntryPointer)) - sizeof(EntryPointer) - 2*sizeof(int)];
 }NODE;
 

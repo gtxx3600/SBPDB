@@ -7,11 +7,8 @@
 
 #include "rm.h"
 
-extern int (*intOP[OP_NUM])(void* left,void*right,int len);
-extern int (*floatOP[OP_NUM])(void* left,void*right,int len);
-extern	int (*strOP[OP_NUM])(void* left,void*right,int len);
+#include "AttrOpFunc.h"
 
-extern int (**typeOP[TYPE_NUM])(void* left,void*right,int len);
 void RM_NextRID(RM_FileScan *this)
 {
 	RID rid = this->crid;
@@ -51,7 +48,7 @@ RC RM_GetNextRec(RM_FileScan *this, RM_Record *rec)
 	{
 		this->NextRID(this);
 
-		if(this->crid.pageNum >=  this->rmfh->totalPageNum)
+		if(this->crid.pageNum >=  this->rmfh->pf_FileHandle->GetNpage(this->rmfh->pf_FileHandle))
 		{
 			return RM_EOF;
 		}
