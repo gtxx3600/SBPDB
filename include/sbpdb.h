@@ -17,7 +17,7 @@ typedef int AttrType;
 #define STRING	1
 #define FLOAT		2
 /*Compare Operator*/
-#define OP_NUM	7
+#define OP_NUM	9
 typedef int CompOp;
 #define EQ_OP		0
 #define LT_OP		1
@@ -26,6 +26,11 @@ typedef int CompOp;
 #define GE_OP		4
 #define NE_OP		5
 #define NO_OP		6
+#define INC_OP		7
+#define DEC_OP		8
+
+#define NEED_SPLIT	99
+#define NEED_UNION	100
 /*Client Hint*/
 typedef enum ClientHint {
 	NO_HINT

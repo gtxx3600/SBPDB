@@ -18,8 +18,7 @@ typedef struct _IX_IndexScan IX_IndexScan;
 typedef struct IX_HeadPage{
 	int indexNo;
 	int attrLength;
-	int maxEntryInLeaf;
-	int maxEntryInNLeaf;
+	int maxEntryInNode;
 	AttrType attrType;
 	PageNum root;
 
@@ -57,6 +56,10 @@ struct _IX_IndexHandle{
 RC initIX_IndexHandle(IX_IndexHandle* this);
 
 struct _IX_IndexScan{
+	const IX_IndexHandle *idxh;
+	CompOp op;
+	void* value;
+	ClientHint ch;
 	RC (*OpenScan)		(IX_IndexScan* this,
 								const IX_IndexHandle *idxh,
 								CompOp op,

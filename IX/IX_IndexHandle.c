@@ -5,14 +5,16 @@
  *      Author: hhf
  */
 #include "ix.h"
+#include "BTNode.h"
 RC IX_InsertEntry     (IX_IndexHandle* this, void *pData, const RID *rid){
-	return NORMAL;
+	return insertIntoRoot(&this->head, &this->pffh, pData, rid);
 }
 RC IX_DeleteEntry     (IX_IndexHandle* this, void *pData, const RID *rid){
+
 	return NORMAL;
 }
 RC IX_ForcePages      (IX_IndexHandle* this){
-	return NORMAL;
+	return this->pffh.ForcePages(&this->pffh, ALL_PAGES);
 }
 
 

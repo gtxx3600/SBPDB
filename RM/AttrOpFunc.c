@@ -6,6 +6,7 @@
  */
 #include "rm.h"
 #include <string.h>
+
 int defaultOP(void* left, void* right, int len)
 {
 	return 0;
@@ -35,6 +36,16 @@ int intNE(void* left,void* right,int len)
 {
 	return *(int*)left != *(int*)right;
 }
+int intINC(void* left,void* out,int len)
+{
+	*(int*)out = *(int*)left + 100;
+	return 1;
+}
+int intDEC(void* left,void* out,int len)
+{
+	*(int*)out = *(int*)left - 100;
+	return 1;
+}
 int (*intOP[OP_NUM])(void* left,void*right,int len) =
 {
 		intEQ,
@@ -43,6 +54,8 @@ int (*intOP[OP_NUM])(void* left,void*right,int len) =
 		intLE,
 		intGE,
 		intNE,
+		intINC,
+		intDEC,
 		defaultOP,
 };
 
@@ -71,6 +84,18 @@ int strNE(void* left,void* right,int len)
 {
 	return strncmp((char*)left,(char*)right,len) != 0;
 }
+int strINC(void* left,void* out,int len)
+{
+	memcpy(out,left,len);
+	((char*)out)[0]++;
+	return 1;
+}
+int strDEC(void* left,void* out,int len)
+{
+	memcpy(out,left,len);
+	((char*)out)[0]--;
+	return 1;
+}
 
 int (*strOP[OP_NUM])(void* left,void*right,int len) =
 {
@@ -80,6 +105,8 @@ int (*strOP[OP_NUM])(void* left,void*right,int len) =
 		strLE,
 		strGE,
 		strNE,
+		strINC,
+		strDEC,
 		defaultOP,
 };
 
@@ -108,7 +135,16 @@ int floatNE(void* left,void*right,int len)
 {
 	return *(float*)left != *(float*)right;
 }
-
+int floatINC(void* left,void*out,int len)
+{
+	*(float*)out = *(float*)left + 100.0;
+	return 1;
+}
+int floatDEC(void* left,void*out,int len)
+{
+	*(float*)out = *(float*)left - 100.0;
+	return 1;
+}
 int (*floatOP[OP_NUM])(void* left,void*right,int len) =
 {
 		floatEQ,
@@ -117,6 +153,8 @@ int (*floatOP[OP_NUM])(void* left,void*right,int len) =
 		floatLE,
 		floatGE,
 		floatNE,
+		floatINC,
+		floatDEC,
 		defaultOP,
 };
 

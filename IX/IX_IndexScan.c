@@ -8,6 +8,11 @@
 
 RC IX_OpenScan(IX_IndexScan* this, const IX_IndexHandle *idxh, CompOp op, void* value, ClientHint ch)
 {
+	this->op = op;
+	this->value = value;
+	this->idxh = idxh;
+	this->ch = ch;
+
 	return NORMAL;
 }
 RC IX_GetNextEntry(IX_IndexScan* this, RID *rid)
