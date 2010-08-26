@@ -18,8 +18,7 @@ typedef struct _IX_IndexScan IX_IndexScan;
 typedef struct IX_HeadPage{
 	int indexNo;
 	int attrLength;
-	int maxEntryInLeaf;
-	int maxEntryInNLeaf;
+	int maxEntryInNode;
 	AttrType attrType;
 	PageNum root;
 

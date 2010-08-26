@@ -29,21 +29,25 @@ int        attrLength)
 		return DB_PARAM;
 	}
 	int ret;
+	char tmpvalue[2*attrLength];
+	bzero(tmpvalue,2*attrLength);
+#include "NODEL.h"
 	PF_FileHandle pffh;
 	initPF_FileHandle(&pffh);
 	PF_PageHandle headph;
 	initPF_PageHandle(&headph);
-	PF_PageHandle rootph;
-	initPF_PageHandle(&rootph);
-	PF_PageHandle branchph;
-	initPF_PageHandle(&branchph);
-	PF_PageHandle leafph;
-	initPF_PageHandle(&leafph);
+	PF_PageHandle r,b1,b2,l1,l2,l3,l4;
+	NODE* nr,*nb1,*nb2,*nl1,*nl2,*nl3,*nl4;
+	initPF_PageHandle(&r);
+	initPF_PageHandle(&b1);
+	initPF_PageHandle(&b2);
+	initPF_PageHandle(&l1);
+	initPF_PageHandle(&l2);
+	initPF_PageHandle(&l3);
+	initPF_PageHandle(&l4);
+
 	IX_HeadPage *head = (IX_HeadPage *)pData;
-	char* rootData;
-	char* branchData;
-	char* leafData;
-	char tmpvalue[attrLength];
+
 	if((ret = this->pfm->CreateFile(this->pfm,tmp))!=NORMAL)
 	{
 		goto err_exit;
@@ -57,66 +61,36 @@ int        attrLength)
 	}
 	if((ret = pffh.AllocatePage(&pffh, &headph)) != NORMAL)
 	{
-
 		goto err_exit0;
 	}
+	pffh.AllocatePage(&pffh, &r);
+	pffh.AllocatePage(&pffh, &b1);
+	pffh.AllocatePage(&pffh, &b2);
+	pffh.AllocatePage(&pffh, &l1);
+	pffh.AllocatePage(&pffh, &l2);
+	pffh.AllocatePage(&pffh, &l3);
+	pffh.AllocatePage(&pffh, &l4);
+	nr = (NODE*) r.page;
+	nb1 = (NODE*) b1.page;
+	nb2 = (NODE*) b2.page;
+	nl1 = (NODE*) l1.page;
+	nl2 = (NODE*) l2.page;
+	nl3 = (NODE*) l3.page;
+	nl4 = (NODE*) l4.page;
 	headph.GetData(&headph, &pData);
-
 	head->attrLength = attrLength;
 	head->attrType = attrType;
 	head->indexNo = indexNo;
-	head->root = 1;
-	head->maxEntryInLeaf = EntryNumInNode(attrType, attrLength, LEAF);
-	head->maxEntryInNLeaf = EntryNumInNode(attrType, attrLength, NOTLEAF);
+	head->root = r.pagenum;
+	head->maxEntryInNode = EntryNumInNode(attrType, attrLength);
+	nr->level = 0;
+	nb1->level = nb2->level = 1;
+	nl1->level = nl2->level = nl3->level = nl4->level = 2;
+	nr->totalEntry = 1;
+	nb1->totalEntry = nb2->totalEntry = 1;
+	nl1->totalEntry = nl2->totalEntry = nl3->totalEntry = nl4->totalEntry = 1;
 
-	/* init root page */
-	if((ret = pffh.AllocatePage(&pffh, &rootph)) != NORMAL)
-	{
-		goto err_exit1;
-	}
-	assert(rootph.pagenum == 1);
 
-	rootph.GetData(&rootph, &rootData);
-	initBTNodeNL(rootData, 0, -1, attrType, attrLength);
-
-	/* init branch page */
-	if((ret = pffh.AllocatePage(&pffh, &branchph)) != NORMAL)
-	{
-		goto err_exit2;
-	}
-	assert(branchph.pagenum == 1);
-
-	branchph.GetData(&branchph, &branchData);
-	initBTNodeNL(branchData, 1, -1, attrType, attrLength);
-
-	/* init leaf page */
-	if((ret = pffh.AllocatePage(&pffh, &leafph)) != NORMAL)
-	{
-		goto err_exit3;
-	}
-
-	leafph.GetData(&leafph, &leafData);
-	initBTNodeL(leafData, 2, -1, attrType, attrLength );
-
-	bzero(tmpvalue, attrLength);
-	if((ret = insertChild(head, &pffh, rootData, branchph.pagenum, tmpvalue)) != NORMAL)
-	{
-		goto err_exit4;
-	}
-	if((ret = insertChild(head, &pffh, branchData, leafData.pagenum, tmpvalue)) != NORMAL)
-	{
-		goto err_exit4;
-	}
-
-err_exit4:
-	pffh.MarkDirty(&pffh, leafph.pagenum);
-	pffh.UnpinPage(&pffh, leafph.pagenum);
-err_exit3:
-	pffh.MarkDirty(&pffh, branchph.pagenum);
-	pffh.UnpinPage(&pffh, branchph.pagenum);
-err_exit2:
-	pffh.MarkDirty(&pffh, rootph.pagenum);
-	pffh.UnpinPage(&pffh, rootph.pagenum);
 err_exit1:
 	pffh.MarkDirty(&pffh, headph.pagenum);
 	pffh.UnpinPage(&pffh, headph.pagenum);

@@ -6,6 +6,7 @@
  */
 #include "ix.h"
 RC IX_InsertEntry     (IX_IndexHandle* this, void *pData, const RID *rid){
+
 	return NORMAL;
 }
 RC IX_DeleteEntry     (IX_IndexHandle* this, void *pData, const RID *rid){
