@@ -7,11 +7,8 @@
 
 #include "rm.h"
 
-extern int (*intOP[OP_NUM])(void* left,void*right,int len);
-extern int (*floatOP[OP_NUM])(void* left,void*right,int len);
-extern	int (*strOP[OP_NUM])(void* left,void*right,int len);
+#include "AttrOpFunc.h"
 
-extern int (**typeOP[TYPE_NUM])(void* left,void*right,int len);
 void RM_NextRID(RM_FileScan *this)
 {
 	RID rid = this->crid;

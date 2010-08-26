@@ -56,7 +56,7 @@ struct _IX_IndexHandle{
 RC initIX_IndexHandle(IX_IndexHandle* this);
 
 struct _IX_IndexScan{
-	IX_IndexHandle *idxh;
+	const IX_IndexHandle *idxh;
 	CompOp op;
 	void* value;
 	ClientHint ch;

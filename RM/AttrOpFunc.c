@@ -6,6 +6,7 @@
  */
 #include "rm.h"
 #include <string.h>
+
 int defaultOP(void* left, void* right, int len)
 {
 	return 0;
