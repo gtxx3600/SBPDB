@@ -40,7 +40,7 @@ int writeBack(Buffer_Data *this, Page_Buffer *pb) {
 	char* fname = pb->filename;
 	FILE *wfile = fopen(fname, "rb+");
 	if (wfile == NULL) {
-		printf("file not exist");
+//		printf("file not exist");
 		return 1;
 	} else {
 		fseek(wfile, (pb->pagenum+1) * ALL_PAGE_SIZE, SEEK_SET );
@@ -59,8 +59,8 @@ int copyBack(Buffer_Data *this, Page_Buffer *pb) {
 	char* fname = pb->filename;
 	FILE *wfile = fopen(fname, "rb+");
 	if (wfile == NULL) {
-		printf("fname: %s \n",pb->filename);
-		printf("file not exist");
+//		printf("fname: %s \n",pb->filename);
+//		printf("file not exist");
 		return 1;
 	} else {
 		if(pb->pagedata == NULL)

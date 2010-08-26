@@ -53,12 +53,12 @@ RC writeSlot(RM_FileHandle* rmfh, char* pData, const char* src, SlotNum sn)
 	memcpy(dst,src,rmfh->recordSize);
 	char* bitmap = &pData[rmfh->bitmappos];
 	bitmap[sn / 8] |= 1 << (sn % 8);
-	int i =0;
-	for(;i<5;i++)
-	{
-		printf("bitmap %x\n",bitmap[i]);
-
-	}
+//	int i =0;
+//	for(;i<5;i++)
+//	{
+//		printf("bitmap %x\n",bitmap[i]);
+//
+//	}
 	if(!hasAvailableSlot(rmfh,pData))
 	{
 		rmfh->firstFree = *(PageNum*)pData;
@@ -133,7 +133,7 @@ RC RM_GetRec	(RM_FileHandle* this, const RID *rid, RM_Record *rec)
 	PF_PageHandle pfpageHandle;
 	initPF_PageHandle(&pfpageHandle);
 	char* pData;
-	if(pageNum < this->totalPageNum && slotNum < this->slotInOnePage)
+	if(pageNum <= this->pf_FileHandle->GetNpage(this->pf_FileHandle) && slotNum < this->slotInOnePage)
 	{
 		this->pf_FileHandle->GetThisPage(this->pf_FileHandle, pageNum, &pfpageHandle);
 		pfpageHandle.GetData(&pfpageHandle, &pData);
@@ -152,6 +152,7 @@ RC RM_GetRec	(RM_FileHandle* this, const RID *rid, RM_Record *rec)
 	}
 	else
 	{
+		printf("pagenum error: ");
 		return DB_PARAM;
 	}
 
