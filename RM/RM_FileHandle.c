@@ -17,12 +17,11 @@ void sync(RM_FileHandle* rmfh)
 	pageHandle.GetData(&pageHandle, &pData);
 	*(PageNum*)pData = rmfh->firstFree;
 	rmfh->pf_FileHandle->MarkDirty(rmfh->pf_FileHandle, pageHandle.pagenum);
-	rmfh->pf_FileHandle->UnpinPage(rmfh->pf_FileHandle, pageHandle.pagenum);
 	rmfh->pf_FileHandle->ForcePages(rmfh->pf_FileHandle, pageHandle.pagenum);
 }
 int hasAvailableSlot(RM_FileHandle * rmfh, char* pData)
 {
-	char* bitmap = &pData[rmfh->bitmappos];
+ 	char* bitmap = &pData[rmfh->bitmappos];
 	int tmp;
 	int i;
 	char cc = '\xff';
@@ -36,10 +35,10 @@ int hasAvailableSlot(RM_FileHandle * rmfh, char* pData)
 	if(rmfh->slotInOnePage % 8)
 	{
 		tmp = 8 - rmfh->slotInOnePage % 8;
-		char c = '\xff';
-		char b = bitmap[i];
-		c = (c << tmp)>>tmp;
-		b = (b << tmp)>>tmp;
+		unsigned char c = '\xff';
+		unsigned char b = bitmap[i];
+		c <<= tmp;
+		c >>= tmp;
 		if(b != c)
 		{
 			return 1;
@@ -61,6 +60,7 @@ RC writeSlot(RM_FileHandle* rmfh, char* pData, const char* src, SlotNum sn)
 //	}
 	if(!hasAvailableSlot(rmfh,pData))
 	{
+		printf("has no available slot!!\n");
 		rmfh->firstFree = *(PageNum*)pData;
 		*(PageNum*)pData = 0;
 		rmfh->modified = 1;
@@ -112,7 +112,7 @@ SlotNum getAvailableSlot(RM_FileHandle * rmfh, char* pData)
 	if(bitmap[i] != c)
 	{
 		int tmp = 1;
-		for (j = 0; j<= rmfh->slotInOnePage % 8; j++)
+		for (j = 0; j< rmfh->slotInOnePage % 8; j++)
 		{
 			if(!(bitmap[i] & tmp))
 			{
