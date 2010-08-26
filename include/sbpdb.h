@@ -30,6 +30,7 @@ typedef int CompOp;
 #define DEC_OP	9
 
 #define NEED_SPLIT	99
+#define NEED_UNION	100
 /*Client Hint*/
 typedef enum ClientHint {
 	NO_HINT
