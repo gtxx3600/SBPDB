@@ -284,6 +284,7 @@ RC deleteFromLeaf(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum leaf,void
 		{
 			memcpy(&n->values[n->totalEntry - i],&n->values[n->totalEntry - i - 1],sizeof(EntryValue));
 		}
+
 		for(i = 0; i < n->totalEntry - pos; i++)
 		{
 			memcpy(&n->pointers[n->totalEntry - i],&n->pointers[n->totalEntry - i - 1],sizeof(EntryPointer));
@@ -372,7 +373,7 @@ RC deleteFromBranch(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum branch,
 	PageNum leaf = n->pointers[pos].page;
 	PageNum leafout;
 	int ret;
-	int i;
+
 	if((ret = deleteFromLeaf(head,pffh,leaf,pData, rid,&leafout)) == NEED_UNION)
 	{
 		if(n->totalEntry >= ENTRYSINBTNODE)
@@ -461,7 +462,7 @@ RC deleteFromRoot(const IX_HeadPage *head,PF_FileHandle* pffh, void *pData, cons
 	PageNum branch = n->pointers[pos].page;
 	PageNum out;
 	int ret;
-	int i;
+
 	if((ret = deleteFromBranch(head,pffh,branch,pData, rid,&out)) == NEED_UNION)
 	{
 
