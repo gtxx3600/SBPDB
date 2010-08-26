@@ -252,9 +252,9 @@ RC deleteFromLeaf(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum leaf,void
 	n = (NODE*)leafph.page;
 	int ret;
 	int pos = findPos(n,pData,head->attrType,head-> attrLength);
-	if(n->totalEntry >= ENTRYSINBTNODE)
+	if(n->totalEntry < ENTRYSINBTNODE/2)
 	{
-		ret = NEED_SPLIT;
+		ret = NEED_UNION;
 		PF_PageHandle broph;
 		initPF_PageHandle(&broph);
 		pffh->AllocatePage(pffh, &broph);
@@ -373,35 +373,15 @@ RC deleteFromBranch(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum branch,
 	PageNum leafout;
 	int ret;
 	int i;
-	if((ret = insertIntoLeaf(head,pffh,leaf,pData, rid,&leafout)) == NEED_SPLIT)
+	if((ret = deleteFromLeaf(head,pffh,leaf,pData, rid,&leafout)) == NEED_UNION)
 	{
 		if(n->totalEntry >= ENTRYSINBTNODE)
 		{
-			ret = NEED_SPLIT;
-			PF_PageHandle new;
-			initPF_PageHandle(&new);
-			pffh->AllocatePage(pffh, &new);
-			NODE* b = (NODE*)new.page;
-			*branchout = new.pagenum;
-			b->level = n->level;
-			b->totalEntry = n->totalEntry - pos;
-			n->totalEntry -= b->totalEntry;
-			memcpy(b->values, &n->values[pos], b->totalEntry * sizeof(EntryValue));
-			memcpy(&b->pointers[1], &n->pointers[pos+1], b->totalEntry * sizeof(EntryPointer));
-			b->pointers[0].page = leafout;
-			pffh->MarkDirty(pffh,new.pagenum);
-			pffh->UnpinPage(pffh,new.pagenum);
+
 		}else
 		{
 
-			for(i = 0; i < n->totalEntry - pos; i++)
-			{
-				memcpy(&n->values[n->totalEntry - i], &n->values[n->totalEntry - i - 1], sizeof(EntryValue));
-				memcpy(&n->pointers[n->totalEntry - i + 1], &n->pointers[n->totalEntry - i], sizeof(EntryPointer)); // pointers[] length = values[] length + 1
-			}
-			n->pointers[pos+1].page = leafout;
-			getFirstValue(head,pffh,leafout,&n->values[pos+1]);
-			n->totalEntry++;
+
 		}
 	}else if(ret == NORMAL)
 	{
@@ -482,25 +462,9 @@ RC deleteFromRoot(const IX_HeadPage *head,PF_FileHandle* pffh, void *pData, cons
 	PageNum out;
 	int ret;
 	int i;
-	if((ret = insertIntoBranch(head,pffh,branch,pData, rid,&out)) == NEED_SPLIT)
+	if((ret = deleteFromBranch(head,pffh,branch,pData, rid,&out)) == NEED_UNION)
 	{
-		if (n->totalEntry >= ENTRYSINBTNODE)
-		{
-			pffh->UnpinPage(pffh,rootph.pagenum);
-			return IX_FULL;//FIXME
-		}
-		for(i = 0; i < n->totalEntry - pos; i++)
-		{
-			memcpy(&n->values[n->totalEntry - i], &n->values[n->totalEntry - i - 1],sizeof(EntryValue));
-			memcpy(&n->pointers[n->totalEntry - i + 1], &n->pointers[n->totalEntry - i],sizeof(EntryValue));
-		}
-		n->totalEntry ++;
-		n->pointers[pos+1].page = out;
-		PageNum ptr;
-		getFirstPointer(head,pffh,out,&ptr);
-		getFirstValue(head,pffh,ptr,&n->values[pos]);
-		pffh->MarkDirty(pffh,rootph.pagenum);
-		pffh->UnpinPage(pffh,rootph.pagenum);
+
 	}else if(ret == NORMAL)
 	{
 
