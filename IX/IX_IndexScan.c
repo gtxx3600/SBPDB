@@ -109,6 +109,7 @@ RC IX_GetNextEntry(IX_IndexScan* this, RID *rid)
 }
 RC IX_CloseScan(IX_IndexScan* this)
 {
+	this->end = 1;
 	return NORMAL;
 }
 
