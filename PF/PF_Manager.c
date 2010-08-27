@@ -26,6 +26,9 @@ RC CreateFile(PF_Manager *this,const char *fileName ) {
 		initPF_PageHandle(&pf);
 		pf.pagenum = 0;
 		memcpy(pf.page,&num,4);
+		num=-1;
+		memcpy(pf.page+4,&num,4);
+		memcpy(pf.page+8,&num,4);
 		fwrite(pf.page, ALL_PAGE_SIZE, 1, cfile);
 		fclose(cfile);
 		return NORMAL;//normal return
@@ -76,8 +79,8 @@ RC OpenFile(PF_Manager *this,const char *fileName, struct PF_FileHandle* fileHan
 
 RC CloseFile(PF_Manager *this,struct PF_FileHandle *fileHandle){
 	if(fileHandle->GetIfOpen(fileHandle)==1){
-		//fileHandle->ForcePages(fileHandle,ALL_PAGES);
-		fileHandle->DisposePages(fileHandle);
+		fileHandle->ForcePages(fileHandle,ALL_PAGES);
+		fileHandle->DisposePages(fileHandle,-1);
 		return NORMAL;
 	}
 	else{

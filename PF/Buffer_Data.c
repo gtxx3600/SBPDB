@@ -197,6 +197,10 @@ int createpage(Page_Buffer *pb, char* filename, int pagenum) {
 	return 0;
 }
 int disposePB(Buffer_Data *this, Page_Buffer *pb, char* tmp) {
+	if(pb ==NULL)
+	{
+		printf("error: null page: %s\n",tmp);
+	}
 	if (pb->pinned == 1) {
 		printf("error in dispose pined page \n");
 		return 1;

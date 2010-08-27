@@ -39,7 +39,7 @@ struct PF_FileHandle {
 	RC (*MarkDirty)(PF_FileHandle *this, PageNum pageNum);
 	RC (*UnpinPage)(PF_FileHandle *this, PageNum pageNum);
 	RC (*ForcePages)(PF_FileHandle *this, PageNum pageNum);
-	RC (*DisposePages)(PF_FileHandle *this);
+	RC (*DisposePages)(PF_FileHandle *this,PageNum pageNum);
 	PageNum (*GetNpage)(PF_FileHandle *this);
 };
 

@@ -22,7 +22,7 @@ RC SetNpage(PF_FileHandle *this, PageNum pn);
 RC MarkDirty(PF_FileHandle *this, PageNum pageNum);
 RC UnpinPage(PF_FileHandle *this, PageNum pageNum);
 RC ForcePages(PF_FileHandle *this, PageNum pageNum);
-RC DisposePages(PF_FileHandle *this);
+RC DisposePages(PF_FileHandle *this, PageNum pageNum);
 
 PageNum GetNpage(PF_FileHandle *this);
 
@@ -99,27 +99,66 @@ RC GetThisPage(PF_FileHandle *this, PageNum pageNum, PF_PageHandle *pageHandle) 
 }
 
 RC AllocatePage(PF_FileHandle *this, struct PF_PageHandle *pageHandle) {
-	this->npage++;
+
 	FILE *wfile = fopen(this->filename, "rb+");
 	if (wfile == NULL) {
 		printf("error in open file %s\n", this->filename);
 	}
-	fseek(wfile, 0, SEEK_SET);
-	fwrite(&this->npage, 4, 1, wfile);
-	fclose(wfile);
-	//	printf("get page : %d\n",this->npage);
-	return (GetThisPage(this, this->npage - 1, pageHandle));
+	int freepage = 1;
+	fseek(wfile, 4, SEEK_SET);
+	fread(&freepage, 4, 1, wfile);
+	if (freepage != -1) {
+		int free;
+		fseek(wfile, ALL_PAGE_SIZE * (freepage - 1), SEEK_SET);
+		fread(&free, 4, 1, wfile);
+		fseek(wfile, 4, SEEK_SET);
+		fwrite(&free, 4, 1, wfile);
+		return (GetThisPage(this, freepage - 1, pageHandle));
+	} else {
+		this->npage++;
+		fseek(wfile, 0, SEEK_SET);
+		fwrite(&this->npage, 4, 1, wfile);
+		fclose(wfile);
+		//	printf("get page : %d\n",this->npage);
+		return (GetThisPage(this, this->npage - 1, pageHandle));
+	}
 }
 
-RC DisposePages(PF_FileHandle *this) {
-	//Buffer_Data *theBD = getBuffer_Data();
+RC DisposePages(PF_FileHandle *this, PageNum pageNum) {
+	Buffer_Data *theBD = getBuffer_Data();
 	char strPageNum[KEY_SIZE];
-	int i = 0;
-	for (i = 0; i < this->npage; i++) {
-		sprintf(strPageNum, "%d", i);
+	if (pageNum == -1) {
+		int i = 0;
+		for (i = 0; i < this->npage; i++) {
+			sprintf(strPageNum, "%d", i);
+			strcat(strPageNum, this->filename);
+			this->UnpinPage(this, i);
+			Page_Buffer *pb = theBD->getMap(theBD, strPageNum);
+			if (pb != NULL)
+				theBD->disposePB(theBD, pb, strPageNum);
+		}
+	} else {
+		sprintf(strPageNum, "%d", pageNum);
 		strcat(strPageNum, this->filename);
-		//Page_Buffer *pb = theBD->getMap(theBD, strPageNum);
-		this->UnpinPage(this,i);
+		this->UnpinPage(this, pageNum);
+		Page_Buffer *pb = theBD->getMap(theBD, strPageNum);
+		if (pb != NULL)
+			theBD->disposePB(theBD, pb, strPageNum);
+		FILE *wfile = fopen(this->filename, "rb+");
+		if (wfile == NULL) {
+			printf("error in open file %s\n", this->filename);
+		}
+		fseek(wfile, 4, SEEK_SET);
+		int firstfree = -1;
+		fread(&firstfree, 4, 1, wfile);
+		int	flag = pageNum + 1;
+		fseek(wfile, 4, SEEK_SET);
+		fwrite(&flag, 4, 1, wfile);
+		fseek(wfile, ALL_PAGE_SIZE * (flag - 1), SEEK_SET);
+		fwrite(&firstfree, 4, 1, wfile);
+
+
+		fclose(wfile);
 	}
 	return NORMAL;
 }
