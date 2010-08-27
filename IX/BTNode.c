@@ -215,6 +215,25 @@ int findPos(void *node,void* value, AttrType attrType,int attrLength)
 	}
 	return total;
 }
+int findExactPos(void *node,void* value, const RID* rid,AttrType attrType,int attrLength)
+{
+	int (**funcOP)(void* left,void*right,int len) = typeOP[attrType];
+	#include "NODEL.h"
+	NODE *n = (NODE*)node;
+	int total = n->totalEntry;
+	int i;
+	for(i=0;i<total;i++)
+	{
+		if(funcOP[EQ_OP](value, &n->values[i], attrLength))
+		{
+			if(n->pointers[i].page == rid->pageNum && n->pointers[i].slot == rid->slotNum)
+			{
+				return i;
+			}
+		}
+	}
+	return total;
+}
 RC getFirstValue(const IX_HeadPage *head, PF_FileHandle* pffh, PageNum pagenum, void* out)
 {
 	int attrLength = head->attrLength;
@@ -241,7 +260,7 @@ RC getFirstPointer(const IX_HeadPage *head, PF_FileHandle* pffh, PageNum pagenum
 	*out = n->pointers[0].page;
 	return NORMAL;
 }
-RC deleteFromLeaf(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum leaf,void *pData, const RID *rid,PageNum* leafout)
+RC deleteFromLeaf(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum leaf,void *pData, const RID *rid,PageNum leftBrother)
 {
 	int attrLength = head->attrLength;
 	#include "NODEL.h"
@@ -250,55 +269,41 @@ RC deleteFromLeaf(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum leaf,void
 	NODE * n;
 	pffh->GetThisPage(pffh, leaf,&leafph);
 	n = (NODE*)leafph.page;
-	int ret;
-	int pos = findPos(n,pData,head->attrType,head-> attrLength);
-	if(n->totalEntry < ENTRYSINBTNODE/2)
+	int pos = findExactPos(n,pData,rid,head->attrType,head-> attrLength);
+	if(n->totalEntry == 1)
 	{
-		ret = NEED_UNION;
-		PF_PageHandle broph;
-		initPF_PageHandle(&broph);
-		pffh->AllocatePage(pffh, &broph);
-		*leafout = broph.pagenum;
-		NODE* bro = (NODE*)broph.page;
-		bro->level = n->level;
-		bro->pointers[ENTRYSINBTNODE].page = n->pointers[ENTRYSINBTNODE].page;
-		n->pointers[ENTRYSINBTNODE].page = broph.pagenum;
-		bro->totalEntry = n->totalEntry / 2;
-		n->totalEntry -= bro->totalEntry;
-		memcpy(bro->pointers, &n->pointers[n->totalEntry], bro->totalEntry);
-		memcpy(bro->values, &n->values[n->totalEntry], bro->totalEntry);
-		PageNum tmp;
-		if(pos >= n->totalEntry)
-		{
-			assert(deleteFromLeaf(head,pffh,broph.pagenum,pData, rid,&tmp) == NORMAL);
+		if(leftBrother){
+			PF_PageHandle broph;
+			initPF_PageHandle(&broph);
+			pffh->GetThisPage(pffh, leftBrother, &broph);
+			NODE* b = (NODE*)broph.page;
+			b->pointers[ENTRYSINBTNODE].page = n->pointers[ENTRYSINBTNODE].page;
+			pffh->MarkDirty(pffh, leftBrother);
+			pffh->UnpinPage(pffh, leftBrother);
+			pffh->UnpinPage(pffh, leaf);
+	//TODO  delete page
+			return NEED_UNION;
 		}else
 		{
-			assert(deleteFromLeaf(head,pffh,leaf,pData, rid,&tmp) == NORMAL);
+			n->totalEntry = 0;
+			pffh->MarkDirty(pffh, leaf);
+			pffh->UnpinPage(pffh, leaf);
+			return  NORMAL;
 		}
-		pffh->MarkDirty(pffh, broph.pagenum);
-		pffh->UnpinPage(pffh, broph.pagenum);
-	}else
-	{
+	}else{
 		int i;
-		for(i = 0; i < n->totalEntry - pos; i++)
+		for(i = 0; i < n->totalEntry - pos - 1; i++)
 		{
-			memcpy(&n->values[n->totalEntry - i],&n->values[n->totalEntry - i - 1],sizeof(EntryValue));
+			memcpy(&n->values[pos + i],&n->values[pos + i + 1],sizeof(EntryValue));
+			memcpy(&n->pointers[pos + i],&n->pointers[pos + i + 1],sizeof(EntryPointer));
 		}
 
-		for(i = 0; i < n->totalEntry - pos; i++)
-		{
-			memcpy(&n->pointers[n->totalEntry - i],&n->pointers[n->totalEntry - i - 1],sizeof(EntryPointer));
-		}
-		memcpy(&n->values[pos], pData, attrLength);
-		n->pointers[pos].page = rid->pageNum;
-		n->pointers[pos].slot = rid->slotNum;
-		n->totalEntry ++ ;
-		ret = NORMAL;
+		n->totalEntry-- ;
 	}
 	pffh->MarkDirty(pffh, leaf);
 	pffh->UnpinPage(pffh, leaf);
 
-	return ret;
+	return NORMAL;
 }
 
 RC insertIntoLeaf(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum leaf,void *pData, const RID *rid,PageNum* leafout)
@@ -359,7 +364,7 @@ RC insertIntoLeaf(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum leaf,void
 
 	return ret;
 }
-RC deleteFromBranch(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum branch,void *pData, const RID *rid,PageNum* branchout)
+RC deleteFromBranch(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum branch,void *pData, const RID *rid,PageNum leftBrother, PageNum rightBrother)
 {
 	int attrLength = head->attrLength;
 	#include "NODEL.h"
@@ -371,18 +376,100 @@ RC deleteFromBranch(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum branch,
 
 	int pos = findPos(n,pData,head->attrType,head-> attrLength);
 	PageNum leaf = n->pointers[pos].page;
-	PageNum leafout;
+
 	int ret;
 
-	if((ret = deleteFromLeaf(head,pffh,leaf,pData, rid,&leafout)) == NEED_UNION)
+	if((ret = deleteFromLeaf(head,pffh,leaf,pData, rid,pos > 0 ? n->pointers[pos - 1].page : 0)) == NEED_UNION)
 	{
-		if(n->totalEntry >= ENTRYSINBTNODE)
+		if(n->totalEntry == 1)
 		{
+			assert(pos == 0 || pos == 1);
+			if(leftBrother){
+				PF_PageHandle left;
+				initPF_PageHandle(&left);
+				pffh->GetThisPage(pffh, leftBrother, &left);
+				NODE* b = (NODE*)left.page;
+				if(b->totalEntry == 1)
+				{
+					b->pointers[b->totalEntry + 1].page = n->pointers[1-pos].page;
+					getFirstValue(head, pffh,n->pointers[1-pos].page, &b->values[b->totalEntry]);
+					b->totalEntry++;
+					pffh->MarkDirty(pffh, leftBrother);
+					pffh->UnpinPage(pffh, leftBrother);
+					//TODO delete n
+					return NEED_UNION;
+				}else
+				{
+					n->pointers[1].page = n->pointers[1-pos].page;
+					getFirstValue(head, pffh, n->pointers[1-pos].page, n->values);
+					n->pointers[0].page = b->pointers[b->totalEntry].page;
+					b->totalEntry--;
+					pffh->MarkDirty(pffh, leftBrother);
+					pffh->UnpinPage(pffh, leftBrother);
+					pffh->MarkDirty(pffh, branch);
+					pffh->UnpinPage(pffh, branch);
+					return NORMAL;
+				}
+
+			}else if(rightBrother)
+			{
+				PF_PageHandle right;
+				initPF_PageHandle(&right);
+				pffh->GetThisPage(pffh, rightBrother, &right);
+				NODE* b = (NODE*)right.page;
+				if(b->totalEntry == 1)
+				{
+					b->pointers[2].page = b->pointers[1].page;
+					b->pointers[1].page = b->pointers[0].page;
+					getFirstValue(head, pffh,b->pointers[1].page, b->values);
+					b->pointers[0].page = n->pointers[1-pos].page;
+					b->totalEntry++;
+					pffh->MarkDirty(pffh, rightBrother);
+					pffh->UnpinPage(pffh, rightBrother);
+					//TODO delete n
+					return NEED_UNION;
+				}else
+				{
+					n->pointers[0].page = n->pointers[1-pos].page;
+					n->pointers[1].page = b->pointers[0].page;
+					getFirstValue(head, pffh, n->pointers[1].page, n->values);
+					int i;
+					for(i = 0; i< b->totalEntry - 1;i++)
+					{
+						memcpy(&b->values[i], &b->values[i+1], sizeof(EntryValue));
+						memcpy(&b->pointers[i], &b->pointers[i+1],sizeof(EntryPointer));
+					}
+					b->pointers[b->totalEntry - 1].page = b->pointers[b->totalEntry].page;
+					b->totalEntry--;
+					pffh->MarkDirty(pffh, leftBrother);
+					pffh->UnpinPage(pffh, leftBrother);
+					pffh->MarkDirty(pffh, branch);
+					pffh->UnpinPage(pffh, branch);
+					return NORMAL;
+				}
+
+
+			}else
+			{
+				return DB_FATAL;
+			}
 
 		}else
 		{
+			int i;
+			int offset = 0;
+			if(pos >= 1)
+			{
+				offset = 1;
+			}
+			for(i = 0; i < n->totalEntry - pos - 1; i++)
+			{
+				memcpy(&n->values[pos + i - offset],&n->values[pos + i + 1 - offset],sizeof(EntryValue));
+				memcpy(&n->pointers[pos + i],&n->pointers[pos + i + 1],sizeof(EntryPointer));
+			}
 
-
+			n->totalEntry-- ;
+			ret = NORMAL;
 		}
 	}else if(ret == NORMAL)
 	{
@@ -460,10 +547,9 @@ RC deleteFromRoot(const IX_HeadPage *head,PF_FileHandle* pffh, void *pData, cons
 	n = (NODE*)rootph.page;
 	int pos = findPos(n,pData,head->attrType,head-> attrLength);
 	PageNum branch = n->pointers[pos].page;
-	PageNum out;
 	int ret;
 
-	if((ret = deleteFromBranch(head,pffh,branch,pData, rid,&out)) == NEED_UNION)
+	if((ret = deleteFromBranch(head,pffh,branch,pData, rid, pos >= 1? n->pointers[pos - 1].page:0, pos <n->totalEntry? n->pointers[pos+1].page:0)) == NEED_UNION)
 	{
 
 	}else if(ret == NORMAL)

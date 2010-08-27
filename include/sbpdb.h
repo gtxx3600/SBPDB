@@ -72,6 +72,7 @@ typedef int RC;
 // Negative
 #define	DB_PARAM				-1
 #define	DB_INTERNAL			-2
+#define	DB_FATAL				-3
 
 #define	PF_NOMEM 				-15     // out of memory
 #define	PF_NOBUF				-16           // out of buffer space
