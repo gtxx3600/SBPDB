@@ -91,7 +91,7 @@ RC RM_CloseFile(RM_Manager* this, struct RM_FileHandle *fileHandle)
 	}
 	if(fileHandle->opened){
 		fileHandle->ForcePages(fileHandle, ALL_PAGES);
-		fileHandle->pf_FileHandle->DisposePages(fileHandle->pf_FileHandle);
+		fileHandle->pf_FileHandle->DisposePages(fileHandle->pf_FileHandle,-1);
 		free(fileHandle->pf_FileHandle);
 		return NORMAL;
 	}
