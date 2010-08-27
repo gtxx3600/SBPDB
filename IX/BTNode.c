@@ -168,7 +168,7 @@ RC deleteFromLeaf(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum leaf,void
 			pffh->UnpinPage(pffh, leaf);
 	//TODO  delete page
 			pffh->DisposePages(pffh,leaf);
-
+		//	printf("DELETE LEAF NEED UNION!!!\n");
 			return NEED_UNION;
 		}else
 		{
@@ -218,8 +218,8 @@ RC insertIntoLeaf(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum leaf,void
 		n->pointers[ENTRYSINBTNODE].page = broph.pagenum;
 		bro->totalEntry = n->totalEntry / 2;
 		n->totalEntry -= bro->totalEntry;
-		memcpy(bro->pointers, &n->pointers[n->totalEntry], bro->totalEntry);
-		memcpy(bro->values, &n->values[n->totalEntry], bro->totalEntry);
+		memcpy(bro->pointers, &n->pointers[n->totalEntry], bro->totalEntry * sizeof(EntryPointer));
+		memcpy(bro->values, &n->values[n->totalEntry], bro->totalEntry * sizeof(EntryValue));
 		PageNum tmp;
 		if(pos >= n->totalEntry)
 		{
@@ -287,6 +287,7 @@ RC deleteFromBranch(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum branch,
 					//TODO delete n
 					pffh->UnpinPage(pffh, branch);
 					pffh->DisposePages(pffh, branch);
+				//	printf("DELETE BRANCH NEED UNION!!!!\n");
 					return NEED_UNION;
 				}else
 				{
@@ -417,6 +418,7 @@ RC insertIntoBranch(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum branch,
 			n->pointers[pos+1].page = leafout;
 			getFirstValue(head,pffh,leafout,&n->values[pos+1]);
 			n->totalEntry++;
+			ret = NORMAL;
 		}
 	}else if(ret == NORMAL)
 	{
@@ -453,8 +455,11 @@ RC deleteFromRoot(const IX_HeadPage *head,PF_FileHandle* pffh, void *pData, cons
 			n->pointers[pos].page = new.pagenum;
 			NODE* b = (NODE*) new.page;
 			b->totalEntry = 0;
+//			int i=0;
+//			for(;i<100;i++){
+//				printf("FATAL ERROR!!!!!!!!\n");
 			//TODO
-
+	//		}
 		}else
 		{
 			int i;
@@ -509,6 +514,7 @@ RC insertIntoRoot(const IX_HeadPage *head,PF_FileHandle* pffh, void *pData, cons
 			memcpy(&n->values[n->totalEntry - i], &n->values[n->totalEntry - i - 1],sizeof(EntryValue));
 			memcpy(&n->pointers[n->totalEntry - i + 1], &n->pointers[n->totalEntry - i],sizeof(EntryValue));
 		}
+		//printf("root totalentry increased!!!\n");
 		n->totalEntry ++;
 		n->pointers[pos+1].page = out;
 		PageNum ptr;

@@ -102,7 +102,7 @@ RC AllocatePage(PF_FileHandle *this, struct PF_PageHandle *pageHandle) {
 
 	FILE *wfile = fopen(this->filename, "rb+");
 	if (wfile == NULL) {
-		printf("error in open file %s\n", this->filename);
+		//printf("error in open file %s\n", this->filename);
 	}
 	int freepage = 1;
 	fseek(wfile, 4, SEEK_SET);
@@ -148,7 +148,7 @@ RC DisposePages(PF_FileHandle *this, PageNum pageNum) {
 		//theBD->disposePB(theBD, pb, strPageNum);
 		FILE *wfile = fopen(this->filename, "rb+");
 		if (wfile == NULL) {
-			printf("error in open file %s\n", this->filename);
+			//printf("error in open file %s\n", this->filename);
 		}
 		fseek(wfile, 4, SEEK_SET);
 		int firstfree = -1;

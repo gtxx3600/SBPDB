@@ -9,7 +9,7 @@
 void initHeadPage(char* pData, RecordSize recordSize)
 {
 	SlotNum slotNum = (ALL_PAGE_SIZE - sizeof(PageNum)) / (recordSize + 1.0/8);
-	printf("slotNum:%d,recordSize:%d\n",slotNum,recordSize);
+	//printf("slotNum:%d,recordSize:%d\n",slotNum,recordSize);
 	*((PageNum*)pData) = 0;
 	*((RecordSize*)(&pData[sizeof(PageNum)])) = recordSize;
 	*((SlotNum*)(&pData[sizeof(RecordSize) + sizeof(PageNum)])) = slotNum;

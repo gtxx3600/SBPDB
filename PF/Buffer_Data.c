@@ -44,10 +44,10 @@ int writeBack(Buffer_Data *this, Page_Buffer *pb) {
 		return 1;
 	} else {
 		fseek(wfile, (pb->pagenum + 1) * ALL_PAGE_SIZE, SEEK_SET );
-		int suc =
+		//int suc =
 				fwrite(pb->pagedata, ALL_PAGE_SIZE, 1, wfile);
 		fflush(wfile);
-		printf("writeback succeed: %d\n", suc);
+		//printf("writeback succeed: %d\n", suc);
 		fclose(wfile);
 	}
 	free(pb);
@@ -66,15 +66,15 @@ int copyBack(Buffer_Data *this, Page_Buffer *pb) {
 		return 1;
 	} else {
 		if (pb->pagedata == NULL) {
-			printf("copyback: page data null \n");
+			//printf("copyback: page data null \n");
 		}
-		printf("copy back pagenum %d\n", pb->pagenum);
+		//printf("copy back pagenum %d\n", pb->pagenum);
 		fseek(wfile, (pb->pagenum + 1) * ALL_PAGE_SIZE, SEEK_SET );
 		int suc =fwrite(pb->pagedata, ALL_PAGE_SIZE, 1, wfile);
 		fflush(wfile);
 		if (suc != 1)
 		{
-			printf("error in fwrite \n");
+			//printf("error in fwrite \n");
 		}
 		//printf("copyback succeed: %d\n", suc);
 		fclose(wfile);
@@ -88,7 +88,7 @@ int unpinPage(Buffer_Data *this, Page_Buffer *pb) {
 	}
 	if (pb->pinned > 1) {
 		pb->pinned--;
-		printf("pinnned !!!!!!!!!!!!!!!!!!!!\n");
+		//printf("pinnned !!!!!!!!!!!!!!!!!!!!\n");
 		return 0;
 	}
 	if (this->lunpin_page == pb)
@@ -208,10 +208,10 @@ int createpage(Page_Buffer *pb, char* filename, int pagenum) {
 int disposePB(Buffer_Data *this, Page_Buffer *pb, char* tmp) {
 	if(pb ==NULL)
 	{
-		printf("error: null page: %s\n",tmp);
+		//printf("error: null page: %s\n",tmp);
 	}
 	if (pb->pinned == 1) {
-		printf("error in dispose pined page \n");
+		//printf("error in dispose pined page \n");
 		return 1;
 	}
 	if (pb == this->lunpin_page) {
@@ -262,7 +262,7 @@ int initBuffer_Data(Buffer_Data *this) {
 
 Buffer_Data *getBuffer_Data() {
 	if (thebuffer.init != 1) {
-		printf("init\n");
+		//printf("init\n");
 		initBuffer_Data(&thebuffer);
 		thebuffer.init = 1;
 	}

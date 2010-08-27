@@ -35,7 +35,7 @@ RC CreateFile(PF_Manager *this,const char *fileName ) {
 		return NORMAL;//normal return
 	} else {
 		fclose(efile);
-		printf("file exist\n");
+		//printf("file exist\n");
 		return (PF_EXIST);//file exist
 	}
 }
@@ -45,7 +45,7 @@ RC DestroyFile(PF_Manager *this,const char *fileName){
 	if( remove(fileName) == -1 )
 	{
 
-		printf("file not exist");
+		//printf("file not exist");
 		return PF_NOTEXIST;
 	}
 	else
@@ -56,7 +56,7 @@ RC OpenFile(PF_Manager *this,const char *fileName, struct PF_FileHandle* fileHan
 
 	FILE *infile = fopen(fileName, "rb+");
 	if ( infile == NULL){
-		printf("file not exist\n");
+		//printf("file not exist\n");
 		return PF_NOTEXIST;
 	}
 	else{

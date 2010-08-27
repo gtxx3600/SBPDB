@@ -87,7 +87,7 @@ RC writeSlot(RM_FileHandle* rmfh, char* pData, const char* src, SlotNum sn)
 //	}
 	if(!hasAvailableSlot(rmfh,pData))
 	{
-		printf("has no available slot!!\n");
+		//printf("has no available slot!!\n");
 		rmfh->firstFree = *(PageNum*)pData;
 		*(PageNum*)pData = 0;
 		rmfh->modified = 1;
@@ -201,7 +201,7 @@ RC RM_InsertRec	(RM_FileHandle* this, const char *data, RID *rid)
 		}
 		pfpageHandle.GetData(&pfpageHandle, &pData);
 		availableSlot = getAvailableSlot(this, pData);
-		printf("find free slot :%d\n",availableSlot);
+		//printf("find free slot :%d\n",availableSlot);
 	}
 	else
 	{
@@ -215,7 +215,7 @@ RC RM_InsertRec	(RM_FileHandle* this, const char *data, RID *rid)
 		*(int*)pData = 0;
 		this->modified = 1;
 		availableSlot = 0;
-		printf("No slot\n");
+		//printf("No slot\n");
 	}
 #ifdef _DEBUG_
 
