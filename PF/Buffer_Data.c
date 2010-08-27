@@ -46,6 +46,7 @@ int writeBack(Buffer_Data *this, Page_Buffer *pb) {
 		fseek(wfile, (pb->pagenum + 1) * ALL_PAGE_SIZE, SEEK_SET );
 		int suc =
 				fwrite(pb->pagedata, ALL_PAGE_SIZE, 1, wfile);
+		fflush(wfile);
 		printf("writeback succeed: %d\n", suc);
 		fclose(wfile);
 	}
@@ -69,8 +70,12 @@ int copyBack(Buffer_Data *this, Page_Buffer *pb) {
 		}
 		printf("copy back pagenum %d\n", pb->pagenum);
 		fseek(wfile, (pb->pagenum + 1) * ALL_PAGE_SIZE, SEEK_SET );
-		//int suc =
-				fwrite(pb->pagedata, ALL_PAGE_SIZE, 1, wfile);
+		int suc =fwrite(pb->pagedata, ALL_PAGE_SIZE, 1, wfile);
+		fflush(wfile);
+		if (suc != 1)
+		{
+			printf("error in fwrite \n");
+		}
 		//printf("copyback succeed: %d\n", suc);
 		fclose(wfile);
 	}
@@ -154,7 +159,8 @@ int allocPage(Buffer_Data *this, char* filename, int pagenum) {
 	pb = (Page_Buffer*) malloc(sizeof(Page_Buffer));
 	pb->dirty = 0;
 	pb->pagenum = pagenum;
-	pb->filename = filename;
+	pb->filename = (char*) malloc(MAX_FILENAME);
+	strncpy(pb->filename, filename,MAX_FILENAME);
 	pb->pagedata = (char*) malloc(ALL_PAGE_SIZE);
 	pb->prev_page = this->lpin_page;
 	pb->prev_page->next_page = pb;
@@ -164,7 +170,7 @@ int allocPage(Buffer_Data *this, char* filename, int pagenum) {
 	char strpagenum[KEY_LENGTH];
 	sprintf(strpagenum, "%d", pagenum);
 	strcat(strpagenum, filename);
-	memcpy(pb->key, strpagenum,KEY_LENGTH);
+	strncpy(pb->key, strpagenum,KEY_LENGTH);
 	//printf("key of pb : %s\n", pb->key);
 	this->lpin_page = pb;
 	addMap(this, pb->key, pb);
