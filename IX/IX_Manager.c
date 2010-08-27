@@ -106,6 +106,10 @@ int        attrLength)
 
 	nb2->pointers[0].page = l3.pagenum;
 	nb2->pointers[1].page = l4.pagenum;
+	nl1->pointers[ENTRYSINBTNODE].page = l2.pagenum;
+	nl2->pointers[ENTRYSINBTNODE].page = l3.pagenum;
+	nl3->pointers[ENTRYSINBTNODE].page = l4.pagenum;
+	nl4->pointers[ENTRYSINBTNODE].page = -1;
 	pffh.MarkDirty(&pffh, r.pagenum);
 	pffh.MarkDirty(&pffh, b1.pagenum);
 	pffh.MarkDirty(&pffh, b2.pagenum);

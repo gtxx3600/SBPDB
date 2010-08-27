@@ -97,6 +97,54 @@ PageNum findStartPage(IX_IndexHandle *idxh)
 	return leaf;
 
 }
+RC findEQRegion(IX_IndexHandle *idxh, PageNum* left ,int* left_offset, PageNum* right, int* right_offset, void* pData)
+{
+	int attrLength = idxh->head.attrLength;
+	#include "NODEL.h"
+	PF_PageHandle ph;
+	initPF_PageHandle(&ph);
+	NODE * r;
+	idxh->pffh.GetThisPage(&idxh->pffh, idxh->head.root, &ph);
+	r = (NODE*)ph.page;
+	int pos = findPos(r,pData,idxh->head.attrType,idxh->head.attrLength);
+
+	PageNum branch = r->pointers[pos].page;
+	PF_PageHandle bph;
+	initPF_PageHandle(&bph);
+	NODE * b;
+	idxh->pffh.GetThisPage(&idxh->pffh, branch, &bph);
+	b = (NODE*)bph.page;
+	int lpos = findPos(b,pData,idxh->head.attrType,idxh->head.attrLength);
+	PageNum leaf = r->pointers[lpos].page;
+	*left = leaf;
+	*right = leaf;
+	PF_PageHandle lph;
+	initPF_PageHandle(&lph);
+	NODE * l;
+	idxh->pffh.GetThisPage(&idxh->pffh, leaf, &lph);
+	l = (NODE*)lph.page;
+	*left_offset = l->totalEntry;
+	*right_offset = l->totalEntry;
+	int i = 0;
+	for(;i < l->totalEntry;i++)
+	{
+		if(typeOP[idxh->head.attrType][EQ_OP](pData,&l->values[i],idxh->head.attrLength))
+		{
+			*left_offset = i;
+		}
+	}
+	for(;i < l->totalEntry;i++)
+	{
+		if(typeOP[idxh->head.attrType][NE_OP](pData,&l->values[i],idxh->head.attrLength))
+		{
+			*right_offset = i - 1;
+		}
+	}
+	idxh->pffh.UnpinPage(&idxh->pffh, idxh->head.root);
+	idxh->pffh.UnpinPage(&idxh->pffh, branch);
+	idxh->pffh.UnpinPage(&idxh->pffh, leaf);
+	return NORMAL;
+}
 RC deleteFromLeaf(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum leaf,void *pData, const RID *rid,PageNum leftBrother)
 {
 	int attrLength = head->attrLength;
