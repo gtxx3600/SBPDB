@@ -257,7 +257,10 @@ value:
     | STRING_V {
         $$ = NEW(Value);
         $$->type = STRING;
-        $$->data = $1;
+		$$->data = malloc(STRING_SIZE);
+		strncpy($$->data, $1, MAXSTRINGLEN);
+		free($1);
+		((char *)($$->data))[MAXSTRINGLEN] = 0;
     }
     | NUMBER DOT NUMBER {
 		//TODO

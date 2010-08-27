@@ -17,8 +17,8 @@ int typeToLength(AttrType type) {
 AttrSel *findAttrSel(AttrSel *as, RelAttr *a) {
 	AttrSel *p;
 	for (p = as; p; p = p->next) {
-		if ((!a->relName || !strcmp(a->relName, as->relName)) &&
-				!strcmp(a->attrName, as->attrName)) {
+		if ((!a->relName || !strcmp(a->relName, p->relName)) &&
+				!strcmp(a->attrName, p->attrName)) {
 			return p;
 		}
 	}

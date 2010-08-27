@@ -58,6 +58,8 @@ RC SM_CloseDb(SM_Manager *self);
 RC SM_GetAttrCats(SM_Manager *self, char *relName,
 		AttrCat **ac, int *size);
 RC SM_UseDatabase(SM_Manager *self, char *name);
+RC SM_CreateDatabase(SM_Manager *self, char *name);
+RC SM_DropDatabase(SM_Manager *self, char *name);
 RC SM_CreateTable(SM_Manager *self, char *relName, AttrInfo *attributes);
 RC SM_DropTable(SM_Manager *self, char *relName);
 RC SM_CreateView(SM_Manager *self, char *viewName, Expression *query);

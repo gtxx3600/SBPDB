@@ -5,4 +5,7 @@
 .cproject
 .pydevproject
 Debug
+data
+sk.sbp
+test
 
