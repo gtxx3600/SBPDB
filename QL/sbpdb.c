@@ -4,22 +4,41 @@
 
 #include "ql.h"
 
+extern FILE *yyin;
+
 int main() {
 	PF_Manager pfm;
 	RM_Manager rmm;
 	IX_Manager ixm;
 	SM_Manager smm;
 	QL_Manager qlm;
+	FILE *input = fopen("sk.sbp", "r");
 	initPF_Manager(&pfm);
 	initRM_Manager(&rmm, &pfm);
 	initIX_Manager(&ixm, &pfm);
 	initSM_Manager(&smm, &ixm, &rmm);
 	initQL_Manager(&qlm, &smm, &ixm, &rmm);
 
+	RM_FileHandle fh;
+	initRM_FileHandle(&fh);
+	rmm.CreateFile(&rmm, "test", 10);
+	rmm.OpenFile(&rmm, "test", &fh);
+	RM_FileScan fs;
+	initRM_FileScan(&fs);
+	char *rctmp = malloc(10);
+	RID rid;
+	fh.InsertRec(&fh, rctmp, &rid);
+	fs.OpenScan(&fs, &fh,
+			INT, 0, 0, NO_OP, NULL, NO_HINT);
+	RM_Record rec;
+	initRM_Record(&rec);
+	while (fs.GetNextRec(&fs, &rec) == NORMAL);
+
 	if (access(BASEDIR, 0))
 		system("mkdir "BASEDIR);
 	chdir(BASEDIR);
 //	system("ls");
+//	yyin = input;
 	while (!smm.isExit) {
 		printf("> ");
 		fflush(stdout);

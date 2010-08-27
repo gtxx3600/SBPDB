@@ -209,7 +209,6 @@ RC QL_ProjGetTuple(QL_Manager *qlm, struct projection_exp *exp, int isNext,
 		QL_Tuple *qlt) {
 	AttrSel *as = attrToAttrSel(exp->al), *asp;
 	RC re = QL_GetTuple(qlm, exp->exp, isNext, qlt);
-	printf("here\n");
 	if (re != NORMAL) return re;
 	asp = as;
 	while (asp) {

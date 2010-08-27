@@ -46,6 +46,33 @@ int hasAvailableSlot(RM_FileHandle * rmfh, char* pData)
 	}
 	return 0;
 }
+int allSlotEmpty(RM_FileHandle * rmfh, char* pData)
+{
+ 	char* bitmap = &pData[rmfh->bitmappos];
+	int tmp;
+	int i;
+	char cc = '\x00';
+	for( i = 0;i < rmfh->slotInOnePage/8;i++)
+	{
+		if(bitmap[i] != cc)
+		{
+			return 0;
+		}
+	}
+	if(rmfh->slotInOnePage % 8)
+	{
+		tmp = 8 - rmfh->slotInOnePage % 8;
+		unsigned char c = '\xff';
+		unsigned char b = bitmap[i];
+		c <<= tmp;
+		c >>= tmp;
+		if(b & c)
+		{
+			return 0;
+		}
+	}
+	return 1;
+}
 RC writeSlot(RM_FileHandle* rmfh, char* pData, const char* src, SlotNum sn)
 {
 	char * dst = &pData[rmfh->pageHeaderLength + rmfh->recordSize * sn];
@@ -78,7 +105,7 @@ RC delSlot(RM_FileHandle* rmfh, char* pData, PageNum pn, SlotNum sn)
 {
 	char* bitmap = &pData[rmfh->bitmappos];
 	bitmap[sn / 8] &= ~(1 << (sn % 8));
-	if(!hasAvailableSlot(rmfh,pData))
+	if(allSlotEmpty(rmfh,pData))
 	{
 		*(PageNum*)pData = rmfh->firstFree;
 		rmfh->firstFree = pn;
@@ -126,6 +153,7 @@ SlotNum getAvailableSlot(RM_FileHandle * rmfh, char* pData)
 }
 RC RM_GetRec	(RM_FileHandle* this, const RID *rid, RM_Record *rec)
 {
+	rec->data=NULL;
 	PageNum pageNum;
 	SlotNum slotNum;
 	rid->GetPageNum(rid, &pageNum);
@@ -137,7 +165,7 @@ RC RM_GetRec	(RM_FileHandle* this, const RID *rid, RM_Record *rec)
 	{
 		this->pf_FileHandle->GetThisPage(this->pf_FileHandle, pageNum, &pfpageHandle);
 		pfpageHandle.GetData(&pfpageHandle, &pData);
-		if(pData[this->bitmappos + slotNum/8] & (1 << slotNum % 8)){ //slot not empty
+		if(pData[this->bitmappos + slotNum/8] & (1 << (slotNum % 8))){ //slot not empty
 			rec->data = (char*)malloc(this->recordSize);
 			memcpy(rec->data, &pData[this->pageHeaderLength + this->recordSize * slotNum], this->recordSize);
 			rec->rid.pageNum = pageNum;
@@ -152,7 +180,6 @@ RC RM_GetRec	(RM_FileHandle* this, const RID *rid, RM_Record *rec)
 	}
 	else
 	{
-		printf("pagenum error: ");
 		return DB_PARAM;
 	}
 

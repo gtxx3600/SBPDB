@@ -11,7 +11,7 @@ RC IX_InsertEntry     (IX_IndexHandle* this, void *pData, const RID *rid){
 }
 RC IX_DeleteEntry     (IX_IndexHandle* this, void *pData, const RID *rid){
 
-	return NORMAL;
+	return deleteFromRoot(&this->head, &this->pffh, pData, rid);
 }
 RC IX_ForcePages      (IX_IndexHandle* this){
 	return this->pffh.ForcePages(&this->pffh, ALL_PAGES);

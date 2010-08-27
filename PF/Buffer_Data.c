@@ -44,7 +44,8 @@ int writeBack(Buffer_Data *this, Page_Buffer *pb) {
 		return 1;
 	} else {
 		fseek(wfile, (pb->pagenum + 1) * ALL_PAGE_SIZE, SEEK_SET );
-		int suc = fwrite(pb->pagedata, ALL_PAGE_SIZE, 1, wfile);
+		int suc =
+				fwrite(pb->pagedata, ALL_PAGE_SIZE, 1, wfile);
 		printf("writeback succeed: %d\n", suc);
 		fclose(wfile);
 	}
@@ -68,8 +69,9 @@ int copyBack(Buffer_Data *this, Page_Buffer *pb) {
 		}
 		printf("copy back pagenum %d\n", pb->pagenum);
 		fseek(wfile, (pb->pagenum + 1) * ALL_PAGE_SIZE, SEEK_SET );
-		int suc = fwrite(pb->pagedata, ALL_PAGE_SIZE, 1, wfile);
-		printf("copyback succeed: %d\n", suc);
+		//int suc =
+				fwrite(pb->pagedata, ALL_PAGE_SIZE, 1, wfile);
+		//printf("copyback succeed: %d\n", suc);
 		fclose(wfile);
 	}
 	return 0;
@@ -102,7 +104,7 @@ int unpinPage(Buffer_Data *this, Page_Buffer *pb) {
 	pb ->prev_page = this->lunpin_page;
 	this->lunpin_page = pb;
 	pb->next_page = NULL;
-	if (this->unpin_num == 0) {
+	if (this->funpin_page == this->unpin_header) {
 		this->funpin_page = pb;
 	}
 	if (pb->pinned == 1) {
@@ -163,7 +165,7 @@ int allocPage(Buffer_Data *this, char* filename, int pagenum) {
 	sprintf(strpagenum, "%d", pagenum);
 	strcat(strpagenum, filename);
 	memcpy(pb->key, strpagenum,KEY_LENGTH);
-	printf("key of pb : %s\n", pb->key);
+	//printf("key of pb : %s\n", pb->key);
 	this->lpin_page = pb;
 	addMap(this, pb->key, pb);
 	this->page_num++;
@@ -175,7 +177,10 @@ int allocPage(Buffer_Data *this, char* filename, int pagenum) {
 			//		free(this->funpin_page);
 			if (this->unpin_num > 1) {
 				this->funpin_page = this->funpin_page->next_page;
+			}else{
+				this->funpin_page=this->unpin_header;
 			}
+
 			this->page_num--;
 			this->unpin_num--;
 		}
@@ -183,6 +188,7 @@ int allocPage(Buffer_Data *this, char* filename, int pagenum) {
 	}
 	return 0;
 }
+
 int createpage(Page_Buffer *pb, char* filename, int pagenum) {
 	pb = (Page_Buffer*) malloc(sizeof(Page_Buffer));
 	pb->dirty = 0;
@@ -194,6 +200,10 @@ int createpage(Page_Buffer *pb, char* filename, int pagenum) {
 	return 0;
 }
 int disposePB(Buffer_Data *this, Page_Buffer *pb, char* tmp) {
+	if(pb ==NULL)
+	{
+		printf("error: null page: %s\n",tmp);
+	}
 	if (pb->pinned == 1) {
 		printf("error in dispose pined page \n");
 		return 1;
