@@ -198,8 +198,8 @@ RC ForcePages(PF_FileHandle *this, PageNum pageNum) {
 			strcat(strPageNum, this->filename);
 			Page_Buffer *pb = theBD->getMap(theBD, strPageNum);
 			if (pb != NULL) {
-				if (pb->dirty == 1)
-					theBD->copyBack(theBD, pb);
+
+				theBD->copyBack(theBD, pb);
 				pb->dirty = 0;
 			}
 		}
@@ -255,8 +255,7 @@ RC initPF_FileHandle(PF_FileHandle *this) {
 	this->currentPage = 0;
 	this->DisposePages = DisposePages;
 	int i = 0;
-	for (i = 0; i < MAX_FILENAME; i++) {
-		this->filename[i] = '\0';
-	}
+	bzero(this->filename,MAX_FILENAME);
+
 	return NORMAL;
 }
