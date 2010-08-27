@@ -14,7 +14,9 @@ RC IX_OpenScan(IX_IndexScan* this, IX_IndexHandle *idxh, CompOp op, void* value,
 	this->idxh = idxh;
 	this->ch = ch;
 	this->inEQregin = 0;
-	findEQRegion(idxh, &this->left,&this->left_offset,&this->right,&this->right_offset,value);
+	firstOP(idxh,value,&this->left,&this->left_offset,EQ_OP);
+	firstOP(idxh,value,&this->right,&this->right_offset,GT_OP);
+
 
 	switch(op)
 	{
@@ -26,7 +28,7 @@ RC IX_OpenScan(IX_IndexScan* this, IX_IndexHandle *idxh, CompOp op, void* value,
 		break;
 	case GT_OP:
 		this->curr = this->right;
-		this->curr_offset = this->right_offset + 1;
+		this->curr_offset = this->right_offset;
 		break;
 	case GE_OP:
 	case EQ_OP:
@@ -55,6 +57,10 @@ void checkCurr(IX_IndexScan* this)
 		this->curr = n->pointers[ENTRYSINBTNODE].page;
 		this->curr_offset = 0;
 	}
+	if(this->curr == -1)
+	{
+		this->end = 1;
+	}
 	pffh->UnpinPage(pffh, tmp);
 }
 RC IX_GetNextEntry(IX_IndexScan* this, RID *rid)
@@ -66,31 +72,36 @@ RC IX_GetNextEntry(IX_IndexScan* this, RID *rid)
 	PF_FileHandle *pffh = &(this->idxh->pffh);
 	PF_PageHandle cph;
 	initPF_PageHandle(&cph);
-
+	int ret = NORMAL;
 	pffh->GetThisPage(pffh, this->curr, &cph);
 	NODE* n = (NODE*)cph.page;
 	if(typeOP[this->idxh->head.attrType][this->op](&n->values[this->curr_offset], this->value, attrLength))
 	{
 		rid->pageNum = n->pointers[this->curr_offset].page;
 		rid->slotNum = n->pointers[this->curr_offset].slot;
+	}else
+	{
+		this->end = 1;
+		ret = IX_EOF;
 	}
 	this->curr_offset ++;
+	checkCurr(this);
 	if(this->op == NE_OP && this->curr == this->left && this->curr_offset == this->left_offset)
 	{
 		this->curr = this->right;
-		this->curr_offset = this->right_offset + 1;
+		this->curr_offset = this->right_offset;
 	}else if(this->op == LT_OP && this->curr == this->left && this->curr_offset == this->left_offset)
 	{
 		this->end = 1;
-	}else if(this->op == LE_OP && this->curr == this->right && this->curr_offset == this->right_offset + 1)
+	}else if(this->op == LE_OP && this->curr == this->right && this->curr_offset == this->right_offset)
 	{
 		this->end = 1;
 	}
-	else if(this->op == LE_OP && this->curr == this->right && this->curr_offset == this->right_offset + 1)
+	else if(this->op == EQ_OP && this->curr == this->right && this->curr_offset == this->right_offset)
 	{
 		this->end = 1;
 	}
-	return NORMAL;
+	return ret;
 }
 RC IX_CloseScan(IX_IndexScan* this)
 {
