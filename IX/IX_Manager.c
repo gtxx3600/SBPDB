@@ -142,7 +142,17 @@ RC IX_DestroyIndex
 const char *fileName,
 int        indexNo)
 {
-	return NORMAL;
+	char tmp[2*MAX_FILENAME];
+	if(strlen(fileName) >= MAX_FILENAME)
+	{
+		return DB_PARAM;
+	}
+	sprintf(tmp,"%s.%d",fileName,indexNo);
+	if(strlen(tmp) >= MAX_FILENAME)
+	{
+		return DB_PARAM;
+	}
+	return this->pfm->DestroyFile(this->pfm,tmp);
 }
 RC IX_OpenIndex
 (IX_Manager *this,
