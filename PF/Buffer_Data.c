@@ -44,9 +44,9 @@ int writeBack(Buffer_Data *this, Page_Buffer *pb) {
 		return 1;
 	} else {
 		fseek(wfile, (pb->pagenum + 1) * ALL_PAGE_SIZE, SEEK_SET );
-		//int suc =
+		int suc =
 				fwrite(pb->pagedata, ALL_PAGE_SIZE, 1, wfile);
-		//printf("writeback succeed: %d\n", suc);
+		printf("writeback succeed: %d\n", suc);
 		fclose(wfile);
 	}
 	free(pb);
@@ -104,7 +104,7 @@ int unpinPage(Buffer_Data *this, Page_Buffer *pb) {
 	pb ->prev_page = this->lunpin_page;
 	this->lunpin_page = pb;
 	pb->next_page = NULL;
-	if (this->unpin_num == 0) {
+	if (this->funpin_page == this->unpin_header) {
 		this->funpin_page = pb;
 	}
 	if (pb->pinned == 1) {
@@ -177,7 +177,10 @@ int allocPage(Buffer_Data *this, char* filename, int pagenum) {
 			//		free(this->funpin_page);
 			if (this->unpin_num > 1) {
 				this->funpin_page = this->funpin_page->next_page;
+			}else{
+				this->funpin_page=this->unpin_header;
 			}
+
 			this->page_num--;
 			this->unpin_num--;
 		}

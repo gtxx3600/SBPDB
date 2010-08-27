@@ -17,6 +17,7 @@ RC DisposeBlock (PF_Manager *this,char *buffer); // Dispose of a scratch page
 
 
 RC CreateFile(PF_Manager *this,const char *fileName ) {
+
 	FILE *efile = fopen(fileName, "rb+");
 
 	if (efile == NULL) {
@@ -40,6 +41,8 @@ RC CreateFile(PF_Manager *this,const char *fileName ) {
 }
 
 RC DestroyFile(PF_Manager *this,const char *fileName){
+
+
 	if( remove(fileName) == -1 )
 	{
 
@@ -52,6 +55,7 @@ RC DestroyFile(PF_Manager *this,const char *fileName){
 }
 
 RC OpenFile(PF_Manager *this,const char *fileName, struct PF_FileHandle* fileHandle){
+
 	FILE *infile = fopen(fileName, "rb+");
 	if ( infile == NULL){
 		printf("file not exist\n");
@@ -78,6 +82,8 @@ RC OpenFile(PF_Manager *this,const char *fileName, struct PF_FileHandle* fileHan
 }
 
 RC CloseFile(PF_Manager *this,struct PF_FileHandle *fileHandle){
+
+
 	if(fileHandle->GetIfOpen(fileHandle)==1){
 		fileHandle->ForcePages(fileHandle,ALL_PAGES);
 		fileHandle->DisposePages(fileHandle,-1);

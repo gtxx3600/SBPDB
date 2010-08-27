@@ -134,16 +134,18 @@ RC DisposePages(PF_FileHandle *this, PageNum pageNum) {
 			strcat(strPageNum, this->filename);
 			this->UnpinPage(this, i);
 			Page_Buffer *pb = theBD->getMap(theBD, strPageNum);
-			if (pb != NULL)
-				theBD->disposePB(theBD, pb, strPageNum);
+			if (pb != NULL) {//theBD->disposePB(theBD, pb, strPageNum);
+
+			}
 		}
 	} else {
 		sprintf(strPageNum, "%d", pageNum);
 		strcat(strPageNum, this->filename);
 		this->UnpinPage(this, pageNum);
 		Page_Buffer *pb = theBD->getMap(theBD, strPageNum);
-		if (pb != NULL)
-			theBD->disposePB(theBD, pb, strPageNum);
+		if (pb != NULL) {
+		}
+		//theBD->disposePB(theBD, pb, strPageNum);
 		FILE *wfile = fopen(this->filename, "rb+");
 		if (wfile == NULL) {
 			printf("error in open file %s\n", this->filename);
@@ -151,12 +153,11 @@ RC DisposePages(PF_FileHandle *this, PageNum pageNum) {
 		fseek(wfile, 4, SEEK_SET);
 		int firstfree = -1;
 		fread(&firstfree, 4, 1, wfile);
-		int	flag = pageNum + 1;
+		int flag = pageNum + 1;
 		fseek(wfile, 4, SEEK_SET);
 		fwrite(&flag, 4, 1, wfile);
 		fseek(wfile, ALL_PAGE_SIZE * (flag - 1), SEEK_SET);
 		fwrite(&firstfree, 4, 1, wfile);
-
 
 		fclose(wfile);
 	}
