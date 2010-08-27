@@ -170,6 +170,7 @@ RC RM_GetRec	(RM_FileHandle* this, const RID *rid, RM_Record *rec)
 			memcpy(rec->data, &pData[this->pageHeaderLength + this->recordSize * slotNum], this->recordSize);
 			rec->rid.pageNum = pageNum;
 			rec->rid.slotNum = slotNum;
+			rec->recordSize = this->recordSize;
 			this->pf_FileHandle->UnpinPage(this->pf_FileHandle, pageNum);
 		}else
 		{
