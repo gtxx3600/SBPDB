@@ -60,6 +60,13 @@ struct _IX_IndexScan{
 	CompOp op;
 	void* value;
 	ClientHint ch;
+	PageNum curr;
+	PageNum left;
+	PageNum right;
+	int curr_offset;
+	int left_offset;
+	int right_offset;
+	int inEQregin;
 	RC (*OpenScan)		(IX_IndexScan* this,
 								const IX_IndexHandle *idxh,
 								CompOp op,

@@ -87,6 +87,16 @@ RC getFirstPointer(const IX_HeadPage *head, PF_FileHandle* pffh, PageNum pagenum
 	*out = n->pointers[0].page;
 	return NORMAL;
 }
+PageNum findStartPage(IX_IndexHandle *idxh)
+{
+	PageNum root = idxh->head.root;
+	PageNum branch;
+	PageNum leaf;
+	getFirstPointer(&idxh->head,&idxh->pffh,root,&branch);
+	getFirstPointer(&idxh->head,&idxh->pffh,branch,&leaf);
+	return leaf;
+
+}
 RC deleteFromLeaf(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum leaf,void *pData, const RID *rid,PageNum leftBrother)
 {
 	int attrLength = head->attrLength;
