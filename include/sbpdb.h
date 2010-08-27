@@ -20,7 +20,7 @@ typedef int AttrType;
 #define FLOAT		2
 #define INT_SIZE	sizeof(int)
 #define FLOAT_SIZE	sizeof(float)
-#define STRING_SIZE	MAXSTRINGLEN
+#define STRING_SIZE	MAXSTRINGLEN+1
 #define MAXSTRINGLEN	255
 /*Compare Operator*/
 #define OP_NUM	9

@@ -16,11 +16,14 @@ void QL_PrintTuple(QL_Tuple *tuple) {
 	while (p) {
 		switch (p->attrType) {
 		case INT:
-			printf("%d", *(int *)(tuple->rmr->data+p->offset));
+			printf("%d INT", *(int *)(tuple->rmr->data+p->offset));
+			break;
 		case STRING:
-			printf("%s", (char *)(tuple->rmr->data+p->offset));
+			printf("%s STRING", (char *)(tuple->rmr->data+p->offset));
+			break;
 		case FLOAT:
-			printf("%f", *(float *)(tuple->rmr->data+p->offset));
+			printf("%f FLOAT", *(float *)(tuple->rmr->data+p->offset));
+			break;
 		}
 		p = p->next;
 		if (p == NULL) break;
@@ -52,7 +55,7 @@ RC QL_Select(QL_Manager *self, Expression *exp, RelAttrList *al) {
 
 RC QL_Insert(QL_Manager *self, char *relName, ValueList *values) {
 	char *pData;
-	int i, nValues = 0;
+	int i, nValues = 0, ret;
 	ValueList *p = values;
 	while (p) {
 		nValues++;
@@ -75,8 +78,11 @@ RC QL_Insert(QL_Manager *self, char *relName, ValueList *values) {
         }
     RM_FileHandle rmFile;
     RID rid;
+    initRM_FileHandle(&rmFile);
+    initRID(&rid, 0, 0);
     self->rmm->OpenFile(self->rmm, relName, &rmFile);
-    rmFile.InsertRec(&rmFile, pData, &rid);
+    ret = rmFile.InsertRec(&rmFile, pData, &rid);
+    printf("rid:    %d, %d\n", rid.pageNum, rid.slotNum);
     self->rmm->CloseFile(self->rmm, &rmFile);
     // TODO: insert index
     free(pData);

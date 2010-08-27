@@ -2,7 +2,7 @@
 #include "AttrOpFunc.h"
 #include "ql.h"
 
-int typeToLength(AttrType type, void *ldata, void *rdata) {
+int typeToLength(AttrType type) {
 	switch (type) {
 	case INT:
 		return INT_SIZE;
@@ -12,6 +12,35 @@ int typeToLength(AttrType type, void *ldata, void *rdata) {
 		return STRING_SIZE;
 	}
 	return -1;
+}
+
+AttrSel *findAttrSel(AttrSel *as, RelAttr *a) {
+	AttrSel *p;
+	for (p = as; p; p = p->next) {
+		if ((!a->relName || !strcmp(a->relName, as->relName)) &&
+				!strcmp(a->attrName, as->attrName)) {
+			return p;
+		}
+	}
+	return NULL;
+}
+
+char *getDataFromRecord(AttrSel *as, RM_Record *rmr, RelAttrValue *av) {
+	if (av->isValue) {
+		return av->u.v->data;
+	} else {
+		AttrSel *p = findAttrSel(as, av->u.a);
+		return rmr->data + p->offset;
+	}
+}
+
+AttrType getTypeFromAV(AttrSel *as, RelAttrValue *av) {
+	if (av->isValue) {
+		return av->u.v->type;
+	} else {
+		AttrSel *p = findAttrSel(as, av->u.a);
+		return p->attrType;
+	}
 }
 
 RM_Record *rmrCopy(RM_Record *src) {
@@ -40,17 +69,6 @@ AttrSel *attrSelCopy(AttrSel *src) {
 	dst->offset = src->offset;
 	dst->next = attrSelCopy(src->next);
 	return dst;
-}
-
-AttrSel *findAttrSel(AttrSel *as, RelAttr *a) {
-	AttrSel *p;
-	for (p = as; p; p = p->next) {
-		if ((!a->relName || !strcmp(a->relName, as->relName)) &&
-				!strcmp(a->attrName, as->attrName)) {
-			return p;
-		}
-	}
-	return NULL;
 }
 
 void destroyAttrSel(AttrSel *as) {
@@ -94,6 +112,7 @@ AttrSel *attrToAttrSel(RelAttrList *al) {
 			p->next->next = NULL;
 			p = p->next;
 		}
+		al = al->next;
 	}
 	return as;
 }
@@ -215,18 +234,18 @@ RC QL_ProjGetTuple(QL_Manager *qlm, struct projection_exp *exp, int isNext,
 		AttrSel *p;
 		int is_found = 0;
 		for (p = qlt->as; p; p = p->next) {
-			if ((!as->relName || !strcmp(as->relName, p->relName)) &&
-					!strcmp(as->attrName, p->attrName)) {
+			if ((!asp->relName || !strcmp(asp->relName, p->relName)) &&
+					!strcmp(asp->attrName, p->attrName)) {
 				if (is_found) {
-					fprintf(stderr, "Already Found: %s\n", as->attrName);
+					fprintf(stderr, "Already Found: %s\n", asp->attrName);
 					return QL_ATTRALREADYFOUND;
 				}
 				is_found = 1;
-				if (!as->relName)
-					as->relName = strdup(p->relName);
-				as->attrType = p->attrType;
-				as->offset = p->offset;
-				as->attrLength = p->attrLength;
+				if (!asp->relName)
+					asp->relName = strdup(p->relName);
+				asp->attrType = p->attrType;
+				asp->offset = p->offset;
+				asp->attrLength = p->attrLength;
 			}
 		}
 		if (!is_found) {
@@ -311,9 +330,7 @@ RC QL_SelGetTuple(QL_Manager *qlm, struct selection_exp *exp, int isNext,
 			if (coc->left->u.v->type != coc->right->u.v->type) {
 				return QL_WRONGTYPE;
 			}
-			int l = typeToLength(coc->left->u.v->type,
-					coc->left->u.v->data,
-					coc->right->u.v->data);
+			int l = typeToLength(coc->left->u.v->type);
 			if (!typeOP[coc->left->u.v->type][coc->op](
 					coc->left->u.v->data,
 					coc->right->u.v->data,
@@ -324,9 +341,7 @@ RC QL_SelGetTuple(QL_Manager *qlm, struct selection_exp *exp, int isNext,
 		if ((ret = QL_GetTuple(qlm, exp->exp, isNext, qlt)) != NORMAL)
 			return ret;
 		if (coc->left->isValue && coc->right->isValue) {
-			int l = typeToLength(coc->left->u.v->type,
-					coc->left->u.v->data,
-					coc->right->u.v->data);
+			int l = typeToLength(coc->left->u.v->type);
 			if (typeOP[coc->left->u.v->type][coc->op](
 					coc->left->u.v->data,
 					coc->right->u.v->data,
@@ -335,15 +350,18 @@ RC QL_SelGetTuple(QL_Manager *qlm, struct selection_exp *exp, int isNext,
 			}
 		}
 		while (1) {
-			AttrSel *left = findAttrSel(qlt->as, coc->left->u.a);
-			AttrSel *right = findAttrSel(qlt->as, coc->right->u.a);
-			if (left->attrType != right->attrType) {
+			char *ldata, *rdata;
+			AttrType lt, rt;
+			int len;
+			ldata = getDataFromRecord(qlt->as, qlt->rmr, coc->left);
+			rdata = getDataFromRecord(qlt->as, qlt->rmr, coc->right);
+			lt = getTypeFromAV(qlt->as, coc->left);
+			rt = getTypeFromAV(qlt->as, coc->right);
+			if (lt != rt) {
 				return QL_WRONGTYPE;
 			}
-			if (typeOP[left->attrType][coc->op](
-					qlt->rmr->data+left->offset,
-					qlt->rmr->data+right->offset,
-					left->attrLength))
+			len = typeToLength(lt);
+			if (typeOP[lt][coc->op](ldata, rdata, len))
 				return NORMAL;
 			if ((ret = QL_GetTuple(qlm, exp->exp, isNext, qlt)) != NORMAL)
 				return ret;
