@@ -42,7 +42,6 @@ RC CreateFile(PF_Manager *this,const char *fileName ) {
 
 RC DestroyFile(PF_Manager *this,const char *fileName){
 
-
 	if( remove(fileName) == -1 )
 	{
 
@@ -51,7 +50,6 @@ RC DestroyFile(PF_Manager *this,const char *fileName){
 	}
 	else
 		return NORMAL;
-
 }
 
 RC OpenFile(PF_Manager *this,const char *fileName, struct PF_FileHandle* fileHandle){

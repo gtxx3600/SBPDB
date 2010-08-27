@@ -254,7 +254,6 @@ RC initPF_FileHandle(PF_FileHandle *this) {
 	this->npage = 0;
 	this->currentPage = 0;
 	this->DisposePages = DisposePages;
-	int i = 0;
 	bzero(this->filename,MAX_FILENAME);
 
 	return NORMAL;
