@@ -64,8 +64,9 @@ QL_Manager *qlManager;
 
 %token SEMICOLON CREATE DROP TABLE VIEW SELECT INSERT DELETE UPDATE
        LBRACE RBRACE COMMA INT_T STRING_T FLOAT_T HELP EXIT DOT
-       INTO VALUES STAR FROM WHERE AND OR NOT AS
-       EQ LT GT LE GE NE IN DATABASE USE SET
+       INTO VALUES STAR FROM WHERE AND OR NOT AS PRIMARY KEY
+       EQ LT GT LE GE NE IN DATABASE USE SET FOREIGN REFERENCES
+       CHECK
 
 %union {
     AttrInfo *attrInfo;
@@ -79,6 +80,7 @@ QL_Manager *qlManager;
 	AssignmentList *assignmentList;
 	IDList *idList;
     Condition *condition;
+	CheckCondition *checkCondition;
 	Expression *expression;
     int compOp;
     int number;
@@ -98,7 +100,7 @@ QL_Manager *qlManager;
 %type <attrType> type;
 %type <value> value;
 %type <valueList> value_list;
-%type <relAttr> attr;
+%type <relAttr> attr fk;
 %type <relAttrList> attr_list select_attr;
 %type <relAttrValue> av;
 %type <relAttrValueList> avlist;
@@ -107,6 +109,8 @@ QL_Manager *qlManager;
 %type <idList> rel_list;
 %type <compOp> compOp;
 %type <expression> query;
+%type <number> pk;
+%type <checkCondition> ck;
 
 %start commands;
 
@@ -195,6 +199,8 @@ create_table:
 				fprintf(stderr, "Error: duplicate column name\n");
 			else if (ret == PF_EXIST)
 				fprintf(stderr, "Error: table %s already exists\n", $3);
+			else if (ret == SM_VIEWEXIST)
+				fprintf(stderr, "Error: view %s already exists\n", $3);
 		}
     }
 	;
@@ -213,13 +219,27 @@ drop_table:
 
 create_view:
 	CREATE VIEW ID AS query SEMICOLON {
-        SM_CreateView(smManager, $3, $5); // TODO
+		int ret;
+        if ((ret = SM_CreateView(smManager, $3, $5)) != NORMAL) {
+        	if (ret == SM_NODBSELECTED)
+				fprintf(stderr, "Error: no database selected\n");
+			else if (ret == SM_VIEWEXIST)
+				fprintf(stderr, "Error: view %s already exists\n", $3);
+			else if (ret == SM_TABLEEXIST)
+				fprintf(stderr, "Error: table %s already exists\n", $3);
+		}
     }
 	;
 
 drop_view:
 	DROP VIEW ID SEMICOLON {
-        SM_DropView(smManager, $3); // TODO
+		int ret;
+        if ((ret = SM_DropView(smManager, $3)) != NORMAL) {
+        	if (ret == SM_NODBSELECTED)
+				fprintf(stderr, "Error: no database selected\n");
+			else if (ret == SM_VIEWNOTEXIST)
+				fprintf(stderr, "Error: view %s doesn't exist\n", $3);
+		}
     }
 	;
 
@@ -234,7 +254,7 @@ attr_def_list:
     };
 
 attr_def:
-    ID type {
+    ID type pk fk ck {
 		$$ = NEW(AttrInfo);
         $$->name = $1;
         $$->type = $2;
@@ -243,7 +263,36 @@ attr_def:
         case STRING: $$->size = MAXSTRINGLEN; break;
         case FLOAT: $$->size = FLOAT_SIZE; break;
         }
+		$$->isPrimaryKey = $3;
+		$$->foriegnKey = $4;
+		$$->check = $5;
     };
+
+pk:
+	{ $$ = 0; }
+	| PRIMARY KEY {
+		$$ = 1;
+	}
+	;
+
+fk:
+	{ $$ = NULL; }
+	| FOREIGN KEY REFERENCES ID LBRACE ID RBRACE {
+		$$ = NEW(RelAttr);
+		$$->relName = $4;
+		$$->attrName = $6;
+	}
+	;
+
+ck:
+	{ $$ = NULL; }
+	| CHECK LBRACE ID compOp value RBRACE {
+		$$ = NEW(CheckCondition);
+		$$->attr = $3;
+		$$->op = $4;
+		$$->value = $5;
+	}
+	;
 
 type:
     INT_T {
@@ -258,7 +307,15 @@ type:
 
 insert:
     INSERT INTO ID VALUES LBRACE value_list RBRACE SEMICOLON {
-		QL_Insert(qlManager, $3, $6);
+		int ret;
+		if ((ret = QL_Insert(qlManager, $3, $6)) != NORMAL) {
+			if (ret == QL_DUPLICATE)
+				fprintf(stderr, "Error: duplicate primary key\n");
+			else if (ret == QL_CHECKFAIL)
+				fprintf(stderr, "Error: check failed\n");
+			else if (ret == QL_FOREIGNNOFOUND)
+				fprintf(stderr, "Error: foreign key no found\n");
+		}
     }
 	;
 
@@ -303,28 +360,48 @@ delete:
 		IDList *il = NEW(IDList);
 		il->id = $3;
 		Expression *exp = translateQuery(NULL, il, $5);
-        QL_Delete(qlManager, $3, exp);
+		int ret;
+        if ((ret = QL_Delete(qlManager, $3, exp)) != NORMAL) {
+			if (ret == QL_ONLYFK)
+				fprintf(stderr, "can't delete foreign key\n");
+		}
     }
 	| DELETE FROM ID SEMICOLON {
 		IDList *il = NEW(IDList);
 		il->id = $3;
 		Expression *exp = translateQuery(NULL, il, NULL);
-        QL_Delete(qlManager, $3, exp);
+		int ret;
+        if ((ret = QL_Delete(qlManager, $3, exp)) != NORMAL) {
+			if (ret == QL_ONLYFK)
+				fprintf(stderr, "can't delete foreign key\n");
+		}
     }
 	| DELETE STAR FROM ID SEMICOLON {
 		IDList *il = NEW(IDList);
 		il->id = $4;
 		Expression *exp = translateQuery(NULL, il, NULL);
-        QL_Delete(qlManager, $4, exp);
+		int ret;
+        if ((ret = QL_Delete(qlManager, $4, exp)) != NORMAL) {
+			if (ret == QL_ONLYFK)
+				fprintf(stderr, "can't delete foreign key\n");
+		}
     }
 	;
 
 update:
 	UPDATE ID SET assignment_list WHERE condition SEMICOLON {
+		int ret;
 		IDList *il = NEW(IDList);
 		il->id = $2;
 		Expression *exp = translateQuery(NULL, il, $6);
-		QL_Update(qlManager, $2, $4, exp);
+		if ((ret = QL_Update(qlManager, $2, $4, exp)) != NORMAL) {
+			if (ret == QL_DUPLICATE)
+				fprintf(stderr, "Error: duplicate primary key\n");
+			else if (ret == QL_CHECKFAIL)
+				fprintf(stderr, "Error: check failed\n");
+			else if (ret == QL_ONLYFK)
+				fprintf(stderr, "can't update foreign key\n");
+		}
 	}
 	;
 
@@ -355,10 +432,8 @@ query:
 
 select:
     query SEMICOLON {
-		if ($1->kind == ProjectionExp) {
-			QL_Select(qlManager, $1);
-		} else {
-			QL_Select(qlManager, $1);
+		int ret;
+		if ((ret = QL_Select(qlManager, $1)) != NORMAL) {
 		}
     }
 	;

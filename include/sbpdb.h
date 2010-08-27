@@ -77,6 +77,10 @@ typedef int RC;
 #define SM_DIREXIST				52
 #define SM_NODBSELECTED			53
 #define SM_DUPLICATEATTR		54
+#define SM_VIEWEXIST			55
+#define SM_TABLEEXIST			56
+#define SM_VIEWNOTEXIST			57
+#define SM_DUPRIMARYKEY			58
 
 #define	QL_WRONGVALUENUM		60
 #define	QL_WRONGTYPE			61
@@ -85,6 +89,10 @@ typedef int RC;
 #define QL_ATTRALREADYFOUND		64
 #define QL_TUPLENOTFOUND		65
 #define QL_NOTSUPPORT			66
+#define QL_DUPLICATE			67
+#define QL_CHECKFAIL			68
+#define QL_FOREIGNNOFOUND		69
+#define QL_ONLYFK				70
 // Negative
 #define	DB_PARAM				-1
 #define	DB_INTERNAL			-2

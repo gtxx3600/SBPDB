@@ -139,6 +139,7 @@ struct relation {
 	} u;
 	RM_FileHandle *fh;
 	RM_Record *cur;
+	Expression *exp;
 };
 
 struct union_exp {
