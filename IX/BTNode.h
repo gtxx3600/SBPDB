@@ -30,7 +30,7 @@ void initBTNode(void* n,int level,PageNum parent, AttrType at,int attrLength);
 int EntryNumInNode(AttrType at,int attrLength);
 
 RC insertIntoRoot(const IX_HeadPage *head,PF_FileHandle* pffh, void *pData, const RID *rid);
-
+RC deleteFromRoot(const IX_HeadPage *head,PF_FileHandle* pffh, void *pData, const RID *rid);
 #define INSERT_DATA_INTO_NODE(node_use_in_macro)				int i;\
 for(i = 0; i < node_use_in_macro->totalEntry - p; i++)\
 {\

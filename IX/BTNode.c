@@ -8,50 +8,7 @@
 #include "BTNode.h"
 #include <assert.h>
 extern int (**typeOP[TYPE_NUM])(void* left,void*right,int len);
-//int findPageNum(void* node, PageNum pageNum, AttrType attrType, int attrLength)
-//{
-//#include "NODEL.h"
-//	NODE *n = (NODE*)node;
-//	int i;
-//	for(i=0; i < n->totalEntry; i++)
-//	{
-//		if(n->entrys[i].page == pageNum)
-//		{
-//			return i;
-//		}
-//	}
-//	return -1;
-//}
-//int findPosToInsert( void* node, void* value, AttrType attrType, int attrLength, int level)
-//{
-//	int (**funcOP)(void* left,void*right,int len) = typeOP[attrType];
-//#include "NODEL.h"
-//		NODE *n = (NODE*)node;
-//		int left = 0,right = n->totalEntry - 1;
-//		int p;
-//
-//		while(left != right)
-//		{
-//			p = (left + right) / 2 ;
-//			if(funcOP[LE_OP](n->entrys[p].value, value, attrLength))
-//			{
-//				left = p+1;
-//				continue;
-//			}else
-//			{
-//				right = p;
-//			}
-//		}
-//		if(funcOP[GT_OP](n->entrys[left].value, value, attrLength))
-//		{
-//			p = left;
-//		}else
-//		{
-//			p = left + 1;
-//		}
-//		return p;
-//
-//}
+
 int EntryNumInNode(AttrType at,int attrLength)
 {
 		#include "NODEL.h"
@@ -68,137 +25,7 @@ void initBTNode(void* node,int level,PageNum parent,AttrType at,int attrLength)
 
 }
 
-//RC insertChild(const IX_HeadPage *head,PF_FileHandle* pffh, void* node, PageNum child, void* value)
-//{
-//	if (node == NULL)return DB_PARAM;
-//	int attrLength = head->attrLength;
-//	#include "NODEL.h"
-//	NODE *n = (NODE*)node;
-//	int total = n->totalEntry;
-//	int maxEntryInNode = head->maxEntryInNode;
-//	int p = findPosToInsert(node, value, head->attrType, head->attrLength);
-//	if(total >= maxEntryInNode)
-//	{
-//		if(n->level == 0)
-//		{
-//			return IX_FULL;
-//		}
-//		PF_PageHandle rootPage;
-//		char * pData;
-//		NODE * root;
-//		initPF_PageHandle(&rootPage);
-//		pffh->GetThisPage(pffh, head->root, &rootPage);
-//		rootPage.GetData(&rootPage, &pData);
-//		root = (NODE*)pData;
-//		if(root->totalEntry >= maxEntryInNode)
-//		{
-//			pffh->UnpinPage(pffh, rootPage.pagenum);
-//			return IX_FULL;
-//		}
-//		PF_PageHandle newBro;
-//		initPF_PageHandle(&newBro);
-//		pffh->AllocatePage(pffh,&newBro);
-//		NODE * bro;
-//		newBro.GetData(&newBro,((char**)&bro));
-//		bro->level = n->level;
-//		bro->totalEntry = n->totalEntry/2;
-//		bro->lastP = n->brother;
-//		n->totalEntry -= bro->totalEntry;
-//		n->brother = newBro.pagenum;
-//		memcpy(bro->entrys, &n->entrys[n->totalEntry], bro->totalEntry * sizeof(NODEENTRY));
-//		if(p < n->totalEntry)
-//		{
-//			INSERT_DATA_INTO_NODE(n)
-//		}else
-//		{
-//			p -= n->totalEntry;
-//			INSERT_DATA_INTO_NODE(bro)
-//		}
-//		insertChild(head,pffh,root, newBro.pagenum, &bro->entrys[0].value);
-//		pffh->MarkDirty(pffh, newBro.pagenum);
-//		pffh->MarkDirty(pffh, rootPage.pagenum);
-//		pffh->UnpinPage(pffh, newBro.pagenum);
-//		pffh->UnpinPage(pffh, rootPage.pagenum);
-//	}else
-//	{
-//		INSERT_DATA_INTO_NODE(n)
-//	}
-//	return NORMAL;
-//}
 
-//RC splitNode(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum node_pageNum,PageNum parent_node_pageNum)
-//{
-//	int attrLength = head->attrLength;
-//#include "NODEL.h"
-//	NODE * n;
-//	NODE * p;
-//	PF_PageHandle nodeph;
-//	PF_PageHandle parentph;
-//	PF_PageHandle broph;
-//	initPF_PageHandle(&broph);
-//	initPF_PageHandle(&parentph);
-//	initPF_PageHandle(&nodeph);
-//	pffh->GetThisPage(pffh, node_pageNum,&nodeph);
-//	pffh->GetThisPage(pffh, parent_node_pageNum,&parentph);
-//	n = (NODE *)nodeph.page;
-//	p = (NODE *)nodeph.page;
-//	int maxEntryInNode = head->maxEntryInNode;
-//	if(p->totalEntry >= maxEntryInNode)
-//	{
-//		pffh->UnpinPage(pffh,node_pageNum);
-//		pffh->UnpinPage(pffh,parent_node_pageNum);
-//		return IX_FULL;
-//	}else
-//	{
-//		pffh->AllocatePage(pffh,&broph);
-//		char* broData;
-//		broph.GetData(&broph,&broData);
-//		NODE* b = (NODE*) broData;
-//		b->level = n->level;
-//		b->totalEntry = n->totalEntry/2;
-//		b->brother = n->brother;
-//		n->totalEntry -= b->totalEntry;
-//		n->brother = broph.pagenum;
-//		memcpy(b->entrys,&n->entrys[n->totalEntry], b->totalEntry*sizeof(NODEENTRY));
-//		RID rid;
-//		initRID(&rid, broph.pagenum,0);
-//		int pos = findPageNum(p, node_pageNum, head->attrType, attrLength);
-//		memcpy(&p->entrys[pos].value, n->entrys, attrLength);
-//		writeNode(head, p, &rid, &b->entrys[0],pos);
-//		pffh->MarkDirty(pffh, node_pageNum);
-//		pffh->UnpinPage(pffh, node_pageNum);
-//		pffh->MarkDirty(pffh, parent_node_pageNum);
-//		pffh->UnpinPage(pffh, parent_node_pageNum);
-//		pffh->MarkDirty(pffh, broph.pagenum);
-//		pffh->UnpinPage(pffh, broph.pagenum);
-//	}
-//	return NORMAL;
-//}
-//RC writeNode(const IX_HeadPage *head, void* node, const RID * rid, void* value, int p)
-//{
-//	int attrLength = head->attrLength;
-//#include "NODEL.h"
-//	NODE * n = (NODE*)node;
-//	int total = n->totalEntry;
-//	int maxEntryInNode = head->maxEntryInNode;
-//
-//	if(total >= maxEntryInNode)
-//	{
-//		return IX_FULL;
-//	}else
-//	{
-//		int i;
-//		for(i = 0; i < total - p; i++)
-//		{
-//			memcpy(&n->entrys[total - i],&n->entrys[total - i - 1],sizeof(NODEENTRY));
-//		}
-//		memcpy(n->entrys[p].value, value, attrLength);
-//		n->entrys[p].page = rid->pageNum;
-//		n->entrys[p].slot = rid->slotNum;
-//		n->totalEntry++;
-//	}
-//	return NORMAL;
-//}
 int findPos(void *node,void* value, AttrType attrType,int attrLength)
 {
 	int (**funcOP)(void* left,void*right,int len) = typeOP[attrType];
@@ -282,6 +109,8 @@ RC deleteFromLeaf(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum leaf,void
 			pffh->UnpinPage(pffh, leftBrother);
 			pffh->UnpinPage(pffh, leaf);
 	//TODO  delete page
+			pffh->DisposePages(pffh,leaf);
+
 			return NEED_UNION;
 		}else
 		{
@@ -397,6 +226,8 @@ RC deleteFromBranch(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum branch,
 					pffh->MarkDirty(pffh, leftBrother);
 					pffh->UnpinPage(pffh, leftBrother);
 					//TODO delete n
+					pffh->UnpinPage(pffh, branch);
+					pffh->DisposePages(pffh, branch);
 					return NEED_UNION;
 				}else
 				{
@@ -427,6 +258,8 @@ RC deleteFromBranch(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum branch,
 					pffh->MarkDirty(pffh, rightBrother);
 					pffh->UnpinPage(pffh, rightBrother);
 					//TODO delete n
+					pffh->UnpinPage(pffh, branch);
+					pffh->DisposePages(pffh, branch);
 					return NEED_UNION;
 				}else
 				{
@@ -549,9 +382,39 @@ RC deleteFromRoot(const IX_HeadPage *head,PF_FileHandle* pffh, void *pData, cons
 	PageNum branch = n->pointers[pos].page;
 	int ret;
 
-	if((ret = deleteFromBranch(head,pffh,branch,pData, rid, pos >= 1? n->pointers[pos - 1].page:0, pos <n->totalEntry? n->pointers[pos+1].page:0)) == NEED_UNION)
+	if((ret = deleteFromBranch(head,pffh,branch,pData, rid,
+			pos >= 1? n->pointers[pos - 1].page:0,
+					pos <n->totalEntry? n->pointers[pos+1].page:0)) == NEED_UNION)
 	{
+		if(n->totalEntry == 1)
+		{
+			PF_PageHandle new;
+			initPF_PageHandle(&new);
+			pffh->AllocatePage(pffh, &new);
+			n->pointers[pos].page = new.pagenum;
+			NODE* b = (NODE*) new.page;
+			b->totalEntry = 0;
+			//TODO
 
+		}else
+		{
+			int i;
+			int offset = 0;
+			if(pos >= 1)
+			{
+				offset = 1;
+			}
+			for(i = 0; i < n->totalEntry - pos - 1; i++)
+			{
+				memcpy(&n->values[pos + i - offset],&n->values[pos + i + 1 - offset],sizeof(EntryValue));
+				memcpy(&n->pointers[pos + i],&n->pointers[pos + i + 1],sizeof(EntryPointer));
+			}
+
+			n->totalEntry-- ;
+			pffh->MarkDirty(pffh, head->root);
+			pffh->UnpinPage(pffh, head->root);
+			ret = NORMAL;
+		}
 	}else if(ret == NORMAL)
 	{
 
@@ -560,7 +423,6 @@ RC deleteFromRoot(const IX_HeadPage *head,PF_FileHandle* pffh, void *pData, cons
 
 	}
 	return ret;
-	return NORMAL;
 }
 RC insertIntoRoot(const IX_HeadPage *head,PF_FileHandle* pffh, void *pData, const RID *rid)
 {
