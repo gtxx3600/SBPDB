@@ -72,16 +72,19 @@ typedef int RC;
 #define 	IX_EOF					20
 #define	IX_FULL				21
 
-#define	SM_NODIR				22
-#define SM_NOREL				30
+#define	SM_NODIR				50
+#define SM_NOREL				51
+#define SM_DIREXIST				52
+#define SM_NODBSELECTED			53
+#define SM_DUPLICATEATTR		54
 
-#define	QL_WRONGVALUENUM		23
-#define	QL_WRONGTYPE		24
-#define	QL_WRONGATTRTYPE		25
-#define QL_ATTRNOTFOUND			26
-#define QL_ATTRALREADYFOUND	27
-#define QL_TUPLENOTFOUND		28
-#define QL_NOTSUPPORT			29
+#define	QL_WRONGVALUENUM		60
+#define	QL_WRONGTYPE			61
+#define	QL_WRONGATTRTYPE		62
+#define QL_ATTRNOTFOUND			63
+#define QL_ATTRALREADYFOUND		64
+#define QL_TUPLENOTFOUND		65
+#define QL_NOTSUPPORT			66
 // Negative
 #define	DB_PARAM				-1
 #define	DB_INTERNAL			-2

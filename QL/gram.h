@@ -75,10 +75,11 @@
      IN = 291,
      DATABASE = 292,
      USE = 293,
-     NUMBER = 294,
-     ID = 295,
-     STRING_V = 296,
-     QUERY = 297
+     SET = 294,
+     NUMBER = 295,
+     ID = 296,
+     STRING_V = 297,
+     QUERY = 298
    };
 #endif
 /* Tokens.  */
@@ -118,10 +119,11 @@
 #define IN 291
 #define DATABASE 292
 #define USE 293
-#define NUMBER 294
-#define ID 295
-#define STRING_V 296
-#define QUERY 297
+#define SET 294
+#define NUMBER 295
+#define ID 296
+#define STRING_V 297
+#define QUERY 298
 
 
 
@@ -131,7 +133,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 64 "gram.y"
+#line 70 "gram.y"
 
     AttrInfo *attrInfo;
     AttrType attrType;
@@ -141,6 +143,7 @@ typedef union YYSTYPE
 	RelAttrList *relAttrList;
 	RelAttrValue *relAttrValue;
 	RelAttrValueList *relAttrValueList;
+	AssignmentList *assignmentList;
 	IDList *idList;
     Condition *condition;
 	Expression *expression;
@@ -151,7 +154,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 155 "gram.h"
+#line 158 "gram.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

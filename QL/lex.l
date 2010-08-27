@@ -46,6 +46,7 @@ as                      return AS;
 in                      return IN;
 insert                  return INSERT;
 into                    return INTO;
+set						return SET;
 values                  return VALUES;
 delete                  return DELETE;
 update                  return UPDATE;

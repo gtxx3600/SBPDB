@@ -12,14 +12,11 @@
 Expression *translateQuery(RelAttrList *al, IDList *rl, Condition *cond) {
 	Expression *rels = NULL;
 	IDList *p = rl;
-	Expression *ret = NEW(Expression);
-	ret->kind = ProjectionExp;
-	ret->u.proje = NEW(struct projection_exp);
-	ret->u.proje->al = al;
-	ret->u.proje->exp = NEW(Expression);
-	ret->u.proje->exp->kind = SelectionExp;
-	ret->u.proje->exp->u.sele = NEW(struct selection_exp);
-	ret->u.proje->exp->u.sele->cond = cond;
+	Expression *selexp = NEW(Expression), *ret;
+	selexp = NEW(Expression);
+	selexp->kind = SelectionExp;
+	selexp->u.sele = NEW(struct selection_exp);
+	selexp->u.sele->cond = cond;
 	while (p) {
 		if (rels) {
 			Expression *tmp = NEW(Expression);
@@ -42,8 +39,17 @@ Expression *translateQuery(RelAttrList *al, IDList *rl, Condition *cond) {
 		}
 		p = p->next;
 	}
-	ret->u.proje->exp->u.sele->exp = rels;
-	return ret;
+	selexp->u.sele->exp = rels;
+	if (al) {
+		ret = NEW(Expression);
+		ret->kind = ProjectionExp;
+		ret->u.proje = NEW(struct projection_exp);
+		ret->u.proje->al = al;
+		ret->u.proje->exp = selexp;
+		return ret;
+	} else {
+		return selexp;
+	}
 }
 
 void yyerror(const char *str) {
@@ -59,7 +65,7 @@ QL_Manager *qlManager;
 %token SEMICOLON CREATE DROP TABLE VIEW SELECT INSERT DELETE UPDATE
        LBRACE RBRACE COMMA INT_T STRING_T FLOAT_T HELP EXIT DOT
        INTO VALUES STAR FROM WHERE AND OR NOT AS
-       EQ LT GT LE GE NE IN DATABASE USE
+       EQ LT GT LE GE NE IN DATABASE USE SET
 
 %union {
     AttrInfo *attrInfo;
@@ -70,6 +76,7 @@ QL_Manager *qlManager;
 	RelAttrList *relAttrList;
 	RelAttrValue *relAttrValue;
 	RelAttrValueList *relAttrValueList;
+	AssignmentList *assignmentList;
 	IDList *idList;
     Condition *condition;
 	Expression *expression;
@@ -95,6 +102,7 @@ QL_Manager *qlManager;
 %type <relAttrList> attr_list select_attr;
 %type <relAttrValue> av;
 %type <relAttrValueList> avlist;
+%type <assignmentList> assignment_list;
 %type <condition> condition;
 %type <idList> rel_list;
 %type <compOp> compOp;
@@ -127,6 +135,7 @@ command:
     | select
     | insert
     | delete
+	| update
     | help
     | exit
     ;
@@ -152,31 +161,53 @@ use_database:
 	USE ID SEMICOLON {
 		int ret;
 		if ((ret = SM_UseDatabase(smManager, $2)) != NORMAL) {
-			fprintf(stderr, "Error: can't use database %s: %d\n", $2, ret);
+			fprintf(stderr, "Error: database %s doesn't exist\n", $2);
 		}
 	}
+	;
 
 create_database:
 	CREATE DATABASE ID SEMICOLON {
-		SM_CreateDatabase(smManager, $3);
+		int ret;
+		if ((ret = SM_CreateDatabase(smManager, $3)) != NORMAL) {
+			fprintf(stderr, "Error: database %s already exists\n", $3);
+		}
 	}
 	;
 
 drop_database:
 	DROP DATABASE ID SEMICOLON {
-		SM_DropDatabase(smManager, $3);
+		int ret;
+		if ((ret = SM_DropDatabase(smManager, $3)) != NORMAL) {
+			if (ret == SM_NODIR)
+				fprintf(stderr, "Error: database %s doesn't exist\n", $3);
+		}
 	}
 	;
 
 create_table:
 	CREATE TABLE ID LBRACE attr_def_list RBRACE SEMICOLON {
-		SM_CreateTable(smManager, $3, $5);
+		int ret;
+		if ((ret = SM_CreateTable(smManager, $3, $5)) != NORMAL) {
+			if (ret == SM_NODBSELECTED)
+				fprintf(stderr, "Error: no database selected\n");
+			else if (ret == SM_DUPLICATEATTR)
+				fprintf(stderr, "Error: duplicate column name\n");
+			else if (ret == PF_EXIST)
+				fprintf(stderr, "Error: table %s already exists\n", $3);
+		}
     }
 	;
 
 drop_table:
 	DROP TABLE ID SEMICOLON {
-        SM_DropTable(smManager, $3);
+		int ret;
+		if ((ret = SM_DropTable(smManager, $3)) != NORMAL) {
+			if (ret == SM_NODBSELECTED)
+				fprintf(stderr, "Error: no database selected\n");
+			else if (ret == PF_NOTEXIST)
+				fprintf(stderr, "Error: table %s doesn't exist\n", $3);
+		}
     }
 	;
 
@@ -269,26 +300,68 @@ value:
 
 delete:
     DELETE FROM ID WHERE condition SEMICOLON {
-        QL_Delete(qlManager, $3, NULL);
+		IDList *il = NEW(IDList);
+		il->id = $3;
+		Expression *exp = translateQuery(NULL, il, $5);
+        QL_Delete(qlManager, $3, exp);
     }
 	| DELETE FROM ID SEMICOLON {
-        QL_Delete(qlManager, $3, NULL);
+		IDList *il = NEW(IDList);
+		il->id = $3;
+		Expression *exp = translateQuery(NULL, il, NULL);
+        QL_Delete(qlManager, $3, exp);
     }
 	| DELETE STAR FROM ID SEMICOLON {
-        QL_Delete(qlManager, $4, NULL);
+		IDList *il = NEW(IDList);
+		il->id = $4;
+		Expression *exp = translateQuery(NULL, il, NULL);
+        QL_Delete(qlManager, $4, exp);
     }
 	;
 
+update:
+	UPDATE ID SET assignment_list WHERE condition SEMICOLON {
+		IDList *il = NEW(IDList);
+		il->id = $2;
+		Expression *exp = translateQuery(NULL, il, $6);
+		QL_Update(qlManager, $2, $4, exp);
+	}
+	;
+
+assignment_list:
+	attr EQ av {
+		$$ = NEW(AssignmentList);
+		$$->left = $1;
+		$$->right = $3;
+		$$->next = NULL;
+	}
+	| assignment_list COMMA attr EQ av {
+		AssignmentList *p = GET_LAST(AssignmentList, $1, next);
+		p->next = NEW(AssignmentList);
+		p->next->left = $3;
+		p->next->right = $5;
+		p->next->next = NULL;
+	}
+	;
+
 query:
-	SELECT select_attr FROM rel_list WHERE condition %prec QUERY{
+	SELECT select_attr FROM rel_list WHERE condition %prec QUERY {
 		$$ = translateQuery($2, $4, $6);
+	}
+	| SELECT select_attr FROM rel_list {
+		$$ = translateQuery($2, $4, NULL);
 	}
 	;
 
 select:
     query SEMICOLON {
-		QL_Select(qlManager, $1, $1->u.proje->al);
-    };
+		if ($1->kind == ProjectionExp) {
+			QL_Select(qlManager, $1);
+		} else {
+			QL_Select(qlManager, $1);
+		}
+    }
+	;
 
 select_attr:
     STAR {
@@ -296,7 +369,8 @@ select_attr:
 	}
     | attr_list {
         $$ = $1;
-    };
+    }
+	;
 
 condition:
     av compOp av {

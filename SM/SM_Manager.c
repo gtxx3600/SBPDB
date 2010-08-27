@@ -102,14 +102,25 @@ RC RelCatSetRelName(RelCat *rc, char *s) {
 }
 
 RC SM_UseDatabase(SM_Manager *self, char *name) {
+	int ret;
 	SM_CloseDb(self);
 	self->dbname = strdup(name);
-	return SM_OpenDb(self, name);
+	if ((ret = SM_OpenDb(self, name)) != NORMAL) {
+		free(self->dbname);
+		self->dbname = NULL;
+	}
+	return ret;
 }
 
 #define MKDIR "mkdir "
 RC SM_CreateDatabase(SM_Manager *self, char *name) {
-	char *command = malloc(strlen(MKDIR)+strlen(name)+1);
+	char *command;
+
+	if (access(name, 0) == 0) {
+		return SM_DIREXIST;
+	}
+
+	command = malloc(strlen(MKDIR)+strlen(name)+1);
 	strcpy(command, MKDIR);
 
 	system(strcat(command, name));
@@ -128,7 +139,15 @@ RC SM_CreateDatabase(SM_Manager *self, char *name) {
 #define RMDIR "rm -rf "
 RC SM_DropDatabase(SM_Manager *self, char *name) {
 	char *command;
-	SM_CloseDb(self);
+
+	if (access(name, 0)) {
+		return SM_NODIR;
+	}
+
+	if (!strcmp(name, self->dbname)) {
+		SM_CloseDb(self);
+	}
+
 	command = malloc(strlen(RMDIR)+strlen(name)+1);
 	strcpy(command, RMDIR);
 	system(strcat(command, name));
@@ -137,8 +156,26 @@ RC SM_DropDatabase(SM_Manager *self, char *name) {
 }
 
 RC SM_CreateTable(SM_Manager *self, char *relName, AttrInfo *attributes) {
-	int recordSize = 0, attrNum = 0;
+	int recordSize = 0, attrNum = 0, ret;
 	AttrInfo *p;
+
+	if (self->dbname == NULL) {
+		return SM_NODBSELECTED;
+	}
+
+    for (p = attributes; p; p = p->next) {
+    	AttrInfo *p0;
+    	for (p0 = p->next; p0; p0 = p0->next) {
+    		if (!strcmp(p->name, p0->name))
+    			return SM_DUPLICATEATTR;
+    	}
+    }
+
+    if ((ret = self->rmm->CreateFile(self->rmm, relName, recordSize))
+    		!= NORMAL) {
+    	return ret;
+    }
+
 	for (p = attributes; p; p = p->next) {
 		int j = self->attrCount++;
 		attrNum++;
@@ -157,8 +194,6 @@ RC SM_CreateTable(SM_Manager *self, char *relName, AttrInfo *attributes) {
         recordSize += p->size;
     }
 
-    self->rmm->CreateFile(self->rmm, relName, recordSize);
-
     int k = self->relCount++;
     RelCat rctmp;
     RelCatSetRelName(&rctmp, relName);
@@ -173,8 +208,16 @@ RC SM_CreateTable(SM_Manager *self, char *relName, AttrInfo *attributes) {
 }
 
 RC SM_DropTable(SM_Manager *self, char *relName) {
-	int i;
-    self->rmm->DestroyFile(self->rmm, relName);
+	int i, ret;
+
+	if (self->dbname == NULL) {
+		return SM_NODBSELECTED;
+	}
+
+    if ((ret = self->rmm->DestroyFile(self->rmm, relName)) != NORMAL) {
+    	return ret;
+    }
+
     for (i = 0; i < self->relCount; i++)
         if (strcmp(self->relRecords[i].relName,
 					relName) == 0) {

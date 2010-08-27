@@ -18,6 +18,7 @@ typedef struct Value Value;
 typedef struct ValueList ValueList;
 typedef struct RelAttrValue RelAttrValue;
 typedef struct RelAttrValueList RelAttrValueList;
+typedef struct AssignmentList AssignmentList;
 typedef struct Condition Condition;
 typedef struct InCondition InCondition;
 typedef struct CompOpCondition CompOpCondition;
@@ -79,6 +80,12 @@ struct RelAttrValue {
 struct RelAttrValueList {
 	RelAttrValue *av;
 	RelAttrValueList *next;
+};
+
+struct AssignmentList {
+	RelAttr *left;
+	RelAttrValue *right;
+	AssignmentList *next;
 };
 
 struct InCondition {

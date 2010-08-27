@@ -1,18 +1,17 @@
 #include "ql.h"
 
-void QL_PrintHeader(RelAttrList *al) {
-	RelAttrList *p = al;
-	while (p) {
-		printf("%s", p->a->attrName);
-		p = p->next;
-		if (p == NULL) break;
-		printf("\t");
-	}
-	printf("\n");
-}
-
-void QL_PrintTuple(QL_Tuple *tuple) {
+void QL_PrintTuple(QL_Tuple *tuple, int h) {
 	AttrSel *p = tuple->as;
+	if (h) {
+		while (p) {
+			printf("%s", p->attrName);
+			p = p->next;
+			if (p == NULL) break;
+			printf("\t");
+		}
+		printf("\n");
+		p = tuple->as;
+	}
 	while (p) {
 		switch (p->attrType) {
 		case INT:
@@ -33,19 +32,20 @@ void QL_PrintTuple(QL_Tuple *tuple) {
 }
 
 void QL_PrintSummary(int count) {
-	printf("summary\n");
+	printf("Total %d\n", count);
 }
 
-RC QL_Select(QL_Manager *self, Expression *exp, RelAttrList *al) {
+RC QL_Select(QL_Manager *self, Expression *exp) {
 	QL_Tuple tuple;
-	int count = 0, ret;
+	int count = 0, ret, h = 1;
 	exp = QL_transExp(exp);
+//	prtExpression(exp, 0);
 	if ((ret = QL_ExpScanOpen(self, exp)) != NORMAL) {
 		return ret;
 	}
-	QL_PrintHeader(al);
 	while ((ret = QL_GetNext(self, exp, &tuple)) == NORMAL) {
-		QL_PrintTuple(&tuple);
+		QL_PrintTuple(&tuple, h);
+		h = 0;
 		count++;
 	}
 	QL_ExpScanClose(self, exp);
@@ -90,13 +90,57 @@ RC QL_Insert(QL_Manager *self, char *relName, ValueList *values) {
 }
 
 RC QL_Delete(QL_Manager *self, char *relName, Expression *exp) {
-	return NORMAL; // TODO
+	QL_Tuple tuple;
+	RM_FileHandle fh;
+	int count = 0, ret, h = 1;
+	exp = QL_transExp(exp);
+	if ((ret = QL_ExpScanOpen(self, exp)) != NORMAL) {
+		return ret;
+	}
+	initRM_FileHandle(&fh);
+	self->rmm->OpenFile(self->rmm, relName, &fh);
+	while ((ret = QL_GetNext(self, exp, &tuple)) == NORMAL) {
+		QL_PrintTuple(&tuple, h);
+		fh.DeleteRec(&fh, &tuple.rmr->rid);
+		h = 0;
+		count++;
+	}
+	self->rmm->CloseFile(self->rmm, &fh);
+	QL_ExpScanClose(self, exp);
+	QL_PrintSummary(count);
+	return NORMAL;
 }
 
-RC QL_Update(QL_Manager *self, char *relName, RelAttr *upAttr,
-		int isValue, RelAttr *rRelAttr, Value *rValue,
+RC QL_Update(QL_Manager *self, char *relName, AssignmentList *agl,
 		Expression *exp) {
-	return NORMAL; // TODO
+	QL_Tuple tuple;
+	RM_FileHandle fh;
+	int count = 0, ret, h = 1;
+	exp = QL_transExp(exp);
+	if ((ret = QL_ExpScanOpen(self, exp)) != NORMAL) {
+		return ret;
+	}
+	initRM_FileHandle(&fh);
+	self->rmm->OpenFile(self->rmm, relName, &fh);
+	while ((ret = QL_GetNext(self, exp, &tuple)) == NORMAL) {
+		AssignmentList *p;
+		QL_PrintTuple(&tuple, h);
+		for (p = agl; p; p = p->next) {
+			AttrSel *as = findAttrSel(tuple.as, p->left);
+			int len = as->attrLength;
+			char *left = tuple.rmr->data + as->offset;
+			char *right = getDataFromRecord(tuple.as,
+					tuple.rmr, p->right);
+			memcpy(left, right, len);
+			fh.UpdateRec(&fh, tuple.rmr);
+		}
+		h = 0;
+		count++;
+	}
+	self->rmm->CloseFile(self->rmm, &fh);
+	QL_ExpScanClose(self, exp);
+	QL_PrintSummary(count);
+	return NORMAL;
 }
 
 RC initQL_Manager(QL_Manager *self, SM_Manager *smm,

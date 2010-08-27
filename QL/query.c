@@ -25,12 +25,16 @@ AttrSel *findAttrSel(AttrSel *as, RelAttr *a) {
 	return NULL;
 }
 
+char *getDataFromAttr(AttrSel *as, RM_Record *rmr, RelAttr *a) {
+	AttrSel *p = findAttrSel(as, a);
+	return rmr->data + p->offset;
+}
+
 char *getDataFromRecord(AttrSel *as, RM_Record *rmr, RelAttrValue *av) {
 	if (av->isValue) {
 		return av->u.v->data;
 	} else {
-		AttrSel *p = findAttrSel(as, av->u.a);
-		return rmr->data + p->offset;
+		return getDataFromAttr(as, rmr, av->u.a);
 	}
 }
 
@@ -81,6 +85,7 @@ void destroyAttrSel(AttrSel *as) {
 
 int isSimpleSelExp(struct selection_exp *exp) {
 	Condition *c = exp->cond;
+	if (c == NULL) return 0;
 	if (exp->exp->kind != Relation)
 		return 0;
 	if (c->kind != CompOpCond)
@@ -263,10 +268,10 @@ RC QL_SelExpScanClose(QL_Manager *qlm, struct selection_exp *exp) {
 }
 
 RC QL_SelExpScanOpen(QL_Manager *qlm, struct selection_exp *exp) {
-	CompOpCondition *coc = exp->cond->u.coc;
 	if (isSimpleSelExp(exp)) {
 		AttrCat *ac;
 		int size, i;
+		CompOpCondition *coc = exp->cond->u.coc;
 		AttrSel *as = NULL, *asp;
 		struct relation *rel = exp->exp->u.rel;
 		int ret = SM_GetAttrCats(qlm->smm, rel->id, &ac, &size);
@@ -323,9 +328,12 @@ RC QL_SelGetTuple(QL_Manager *qlm, struct selection_exp *exp, int isNext,
 		qlt->rmr = rmrCopy(rel->cur);
 		qlt->as = attrSelCopy(rel->as);
 		return NORMAL;
+	} else if (exp->cond == NULL) {
+		return QL_GetTuple(qlm, exp->exp, isNext, qlt);
 	} else {
 		int ret;
-		CompOpCondition *coc = exp->cond->u.coc;
+		CompOpCondition *coc;
+		coc = exp->cond->u.coc;
 		if (coc->left->isValue && coc->right->isValue) {
 			if (coc->left->u.v->type != coc->right->u.v->type) {
 				return QL_WRONGTYPE;

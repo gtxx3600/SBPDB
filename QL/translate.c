@@ -1,3 +1,4 @@
+#include "sbpdb.h"
 #include "planner.h"
 
 Expression *QL_transExp(Expression *exp) {
@@ -21,6 +22,7 @@ Expression *QL_transExp(Expression *exp) {
 		return exp;
 	case SelectionExp:
 		exp->u.sele->exp = QL_transExp(exp->u.sele->exp);
+		if (exp->u.sele->cond == NULL) return exp;
 		switch (exp->u.sele->cond->kind) {
 		case CompOpCond: {
 			Condition *c = exp->u.sele->cond;
@@ -30,10 +32,10 @@ Expression *QL_transExp(Expression *exp) {
 				c->u.coc->right = tmp;
 				switch (c->u.coc->op) {
 				case EQ_OP: break;
-				case LT_OP: c->u.coc->op = GT_OP;
-				case GT_OP: c->u.coc->op = LT_OP;
-				case LE_OP: c->u.coc->op = GE_OP;
-				case GE_OP: c->u.coc->op = LE_OP;
+				case LT_OP: c->u.coc->op = GT_OP; break;
+				case GT_OP: c->u.coc->op = LT_OP; break;
+				case LE_OP: c->u.coc->op = GE_OP; break;
+				case GE_OP: c->u.coc->op = LE_OP; break;
 				case NE_OP: break;
 				}
 			}
