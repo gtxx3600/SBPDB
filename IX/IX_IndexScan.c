@@ -56,12 +56,14 @@ void checkCurr(IX_IndexScan* this)
 	{
 		this->curr = n->pointers[ENTRYSINBTNODE].page;
 		this->curr_offset = 0;
+		checkCurr(this);
 	}
 	if(this->curr == -1)
 	{
 		this->end = 1;
 	}
 	pffh->UnpinPage(pffh, tmp);
+
 }
 RC IX_GetNextEntry(IX_IndexScan* this, RID *rid)
 {
