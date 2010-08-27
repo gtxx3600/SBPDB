@@ -212,6 +212,7 @@ RC RM_InsertRec	(RM_FileHandle* this, const char *data, RID *rid)
 		}
 		this->firstFree = pfpageHandle.pagenum;
 		pfpageHandle.GetData(&pfpageHandle, &pData);
+		bzero(pData, ALL_PAGE_SIZE);
 		*(int*)pData = 0;
 		this->modified = 1;
 		availableSlot = 0;
