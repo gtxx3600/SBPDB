@@ -44,7 +44,6 @@ ClientHint    pinHint)
 RC RM_GetNextRec(RM_FileScan *this, RM_Record *rec)
 {
 	rec->data = NULL;
-	rec->recordSize = this->al;
 	while(1)
 	{
 		this->NextRID(this);
