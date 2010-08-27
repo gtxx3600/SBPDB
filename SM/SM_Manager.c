@@ -154,12 +154,21 @@ RC SM_DropTable(SM_Manager *self, char *relName) {
 	return NORMAL;
 }
 
+RC SM_CreateView(SM_Manager *self, char *viewName, Expression *query) {
+	return NORMAL;
+}
+
+RC SM_DropView(SM_Manager *self, char *viewName) {
+	return NORMAL;
+}
+
 RC SM_Help(SM_Manager *self) {
 	printf("qs-IHS-IN\n");
 	return NORMAL;
 }
 
 RC SM_Exit(SM_Manager *self) {
+	self->isExit = 1;
 	return NORMAL;
 }
 
@@ -168,5 +177,6 @@ RC initSM_Manager(SM_Manager *self, IX_Manager *ixm, RM_Manager *rmm) {
 	self->rmm = rmm;
 	self->relmax = 0;
 	self->attrmax = 0;
+	self->isExit = 0;
 	return 0;
 }

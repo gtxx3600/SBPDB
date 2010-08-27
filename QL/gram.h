@@ -127,10 +127,10 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 38 "gram.y"
+#line 64 "gram.y"
 
     AttrInfo *attrInfo;
-    AttrType *attrType;
+    AttrType attrType;
     Value *value;
 	ValueList *valueList;
     RelAttr *relAttr;

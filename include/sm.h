@@ -49,6 +49,7 @@ struct SM_Manager {
 	AttrCat *attrRecords;
 	int relCount, attrCount;
 	int relmax, attrmax;
+	int isExit;
 };
 
 RC SM_OpenDb(SM_Manager *self, char *dbName);
@@ -57,7 +58,7 @@ RC SM_GetAttrCats(SM_Manager *self, char *relName,
 		AttrCat **ac, int *size);
 RC SM_CreateTable(SM_Manager *self, char *relName, AttrInfo *attributes);
 RC SM_DropTable(SM_Manager *self, char *relName);
-RC SM_CreateView(SM_Manager *self, char *viewName, Expression query);
+RC SM_CreateView(SM_Manager *self, char *viewName, Expression *query);
 RC SM_DropView(SM_Manager *self, char *viewName);
 RC SM_Help(SM_Manager *self);
 RC SM_Exit(SM_Manager *self);

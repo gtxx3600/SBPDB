@@ -16,6 +16,10 @@ typedef int AttrType;
 #define INT 		1
 #define STRING	2
 #define FLOAT		3
+#define INT_SIZE	sizeof(int)
+#define FLOAT_SIZE	sizeof(float)
+#define STRING_SIZE	MAXSTRINGLEN
+#define MAXSTRINGLEN	255
 /*Compare Operator*/
 #define OP_NUM	9
 typedef int CompOp;
@@ -70,10 +74,10 @@ typedef int RC;
 #define SM_NOREL				30
 
 #define	QL_WRONGVALUENUM		23
-#define	QL_WRONGVALUETYPE		24
+#define	QL_WRONGTYPE		24
 #define	QL_WRONGATTRTYPE		25
 #define QL_ATTRNOTFOUND			26
-#define QL_ATTRARLREADYFOUND	27
+#define QL_ATTRALREADYFOUND	27
 #define QL_TUPLENOTFOUND		28
 #define QL_NOTSUPPORT			29
 // Negative

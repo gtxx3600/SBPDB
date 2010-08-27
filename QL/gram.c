@@ -68,14 +68,15 @@
 /* Copy the first part of user declarations.  */
 
 /* Line 189 of yacc.c  */
-#line 1 "../QL/gram.y"
+#line 1 "gram.y"
 
 
 #include <stdio.h>
 
 #include "sbpdb.h"
-#include "sm.h"
+#include "planner.h"
 #include "ql.h"
+#include "sm.h"
 
 #include "lex.c"
 
@@ -92,8 +93,8 @@ Expression *translateQuery(RelAttrList *al, IDList *rl, Condition *cond) {
 	ret->u.proje->exp->u.sele->cond = cond;
 	while (p) {
 		if (rels) {
-			Expression *tmp = NEW(Expression)
-			Expression *left, right;
+			Expression *tmp = NEW(Expression);
+			Expression *left, *right;
 			tmp->kind = ProductExp;
 			tmp->u.prode = NEW(struct product_exp);
 			left = rels;
@@ -127,7 +128,7 @@ QL_Manager *qlManager;
 
 
 /* Line 189 of yacc.c  */
-#line 131 "y.tab.c"
+#line 132 "gram.c"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -242,7 +243,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 63 "../QL/gram.y"
+#line 64 "gram.y"
 
     AttrInfo *attrInfo;
     AttrType attrType;
@@ -262,7 +263,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 266 "y.tab.c"
+#line 267 "gram.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -274,7 +275,7 @@ typedef union YYSTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 278 "y.tab.c"
+#line 279 "gram.c"
 
 #ifdef short
 # undef short
@@ -583,12 +584,12 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   104,   104,   106,   110,   111,   112,   113,   114,   115,
-     116,   117,   118,   122,   128,   134,   140,   146,   152,   158,
-     161,   168,   180,   183,   186,   191,   197,   202,   212,   219,
-     224,   230,   233,   236,   242,   248,   253,   256,   261,   269,
-     276,   283,   290,   296,   302,   303,   304,   305,   306,   307,
-     311,   316,   323,   328,   338,   343,   350,   355,   364,   369
+       0,   105,   105,   107,   111,   112,   113,   114,   115,   116,
+     117,   118,   119,   123,   129,   135,   141,   147,   153,   159,
+     162,   169,   181,   184,   187,   192,   198,   203,   213,   220,
+     225,   231,   234,   237,   243,   249,   254,   257,   262,   270,
+     277,   284,   291,   297,   303,   304,   305,   306,   307,   308,
+     312,   317,   324,   329,   339,   344,   351,   356,   365,   370
 };
 #endif
 
@@ -1563,7 +1564,7 @@ yyreduce:
         case 13:
 
 /* Line 1455 of yacc.c  */
-#line 122 "../QL/gram.y"
+#line 123 "gram.y"
     {
         SM_Exit(smManager);
     }
@@ -1572,7 +1573,7 @@ yyreduce:
   case 14:
 
 /* Line 1455 of yacc.c  */
-#line 128 "../QL/gram.y"
+#line 129 "gram.y"
     {
         SM_Help(smManager);
     }
@@ -1581,7 +1582,7 @@ yyreduce:
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 134 "../QL/gram.y"
+#line 135 "gram.y"
     {
 		SM_CreateTable(smManager, (yyvsp[(3) - (7)].string), (yyvsp[(5) - (7)].attrInfo));
     }
@@ -1590,7 +1591,7 @@ yyreduce:
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 140 "../QL/gram.y"
+#line 141 "gram.y"
     {
         SM_DropTable(smManager, (yyvsp[(3) - (4)].string));
     }
@@ -1599,7 +1600,7 @@ yyreduce:
   case 17:
 
 /* Line 1455 of yacc.c  */
-#line 146 "../QL/gram.y"
+#line 147 "gram.y"
     {
         SM_CreateView(smManager, (yyvsp[(3) - (6)].string), (yyvsp[(5) - (6)].expression)); // TODO
     }
@@ -1608,7 +1609,7 @@ yyreduce:
   case 18:
 
 /* Line 1455 of yacc.c  */
-#line 152 "../QL/gram.y"
+#line 153 "gram.y"
     {
         SM_DropView(smManager, (yyvsp[(3) - (4)].string)); // TODO
     }
@@ -1617,7 +1618,7 @@ yyreduce:
   case 19:
 
 /* Line 1455 of yacc.c  */
-#line 158 "../QL/gram.y"
+#line 159 "gram.y"
     {
 		(yyval.attrInfo) = (yyvsp[(1) - (1)].attrInfo);
 	}
@@ -1626,7 +1627,7 @@ yyreduce:
   case 20:
 
 /* Line 1455 of yacc.c  */
-#line 161 "../QL/gram.y"
+#line 162 "gram.y"
     {
 		AttrInfo *p = GET_LAST(AttrInfo, (yyvsp[(1) - (3)].attrInfo), next);
 		p->next = (yyvsp[(3) - (3)].attrInfo);
@@ -1637,7 +1638,7 @@ yyreduce:
   case 21:
 
 /* Line 1455 of yacc.c  */
-#line 168 "../QL/gram.y"
+#line 169 "gram.y"
     {
 		(yyval.attrInfo) = NEW(AttrInfo);
         (yyval.attrInfo)->name = (yyvsp[(1) - (2)].string);
@@ -1653,7 +1654,7 @@ yyreduce:
   case 22:
 
 /* Line 1455 of yacc.c  */
-#line 180 "../QL/gram.y"
+#line 181 "gram.y"
     {
         (yyval.attrType) = INT;
     }
@@ -1662,7 +1663,7 @@ yyreduce:
   case 23:
 
 /* Line 1455 of yacc.c  */
-#line 183 "../QL/gram.y"
+#line 184 "gram.y"
     {
         (yyval.attrType) = STRING;
     }
@@ -1671,7 +1672,7 @@ yyreduce:
   case 24:
 
 /* Line 1455 of yacc.c  */
-#line 186 "../QL/gram.y"
+#line 187 "gram.y"
     {
         (yyval.attrType) = FLOAT;
     }
@@ -1680,7 +1681,7 @@ yyreduce:
   case 25:
 
 /* Line 1455 of yacc.c  */
-#line 191 "../QL/gram.y"
+#line 192 "gram.y"
     {
 		QL_Insert(qlManager, (yyvsp[(3) - (8)].string), (yyvsp[(6) - (8)].valueList));
     }
@@ -1689,7 +1690,7 @@ yyreduce:
   case 26:
 
 /* Line 1455 of yacc.c  */
-#line 197 "../QL/gram.y"
+#line 198 "gram.y"
     {
 		(yyval.valueList) = NEW(ValueList);
 		(yyval.valueList)->v = (yyvsp[(1) - (1)].value);
@@ -1700,7 +1701,7 @@ yyreduce:
   case 27:
 
 /* Line 1455 of yacc.c  */
-#line 202 "../QL/gram.y"
+#line 203 "gram.y"
     {
         ValueList *p = GET_LAST(ValueList, (yyvsp[(1) - (3)].valueList), next);
 		p->next = NEW(ValueList);
@@ -1713,7 +1714,7 @@ yyreduce:
   case 28:
 
 /* Line 1455 of yacc.c  */
-#line 212 "../QL/gram.y"
+#line 213 "gram.y"
     {
         (yyval.value) = NEW(Value);
         (yyval.value)->type = INT;
@@ -1726,7 +1727,7 @@ yyreduce:
   case 29:
 
 /* Line 1455 of yacc.c  */
-#line 219 "../QL/gram.y"
+#line 220 "gram.y"
     {
         (yyval.value) = NEW(Value);
         (yyval.value)->type = STRING;
@@ -1737,7 +1738,7 @@ yyreduce:
   case 30:
 
 /* Line 1455 of yacc.c  */
-#line 224 "../QL/gram.y"
+#line 225 "gram.y"
     {
 		//TODO
     }
@@ -1746,7 +1747,7 @@ yyreduce:
   case 31:
 
 /* Line 1455 of yacc.c  */
-#line 230 "../QL/gram.y"
+#line 231 "gram.y"
     {
         QL_Delete(qlManager, (yyvsp[(3) - (6)].string), NULL);
     }
@@ -1755,7 +1756,7 @@ yyreduce:
   case 32:
 
 /* Line 1455 of yacc.c  */
-#line 233 "../QL/gram.y"
+#line 234 "gram.y"
     {
         QL_Delete(qlManager, (yyvsp[(3) - (4)].string), NULL);
     }
@@ -1764,7 +1765,7 @@ yyreduce:
   case 33:
 
 /* Line 1455 of yacc.c  */
-#line 236 "../QL/gram.y"
+#line 237 "gram.y"
     {
         QL_Delete(qlManager, (yyvsp[(4) - (5)].string), NULL);
     }
@@ -1773,7 +1774,7 @@ yyreduce:
   case 34:
 
 /* Line 1455 of yacc.c  */
-#line 242 "../QL/gram.y"
+#line 243 "gram.y"
     {
 		(yyval.expression) = translateQuery((yyvsp[(2) - (6)].relAttrList), (yyvsp[(4) - (6)].idList), (yyvsp[(6) - (6)].condition));
 	}
@@ -1782,7 +1783,7 @@ yyreduce:
   case 35:
 
 /* Line 1455 of yacc.c  */
-#line 248 "../QL/gram.y"
+#line 249 "gram.y"
     {
 		QL_Select(qlManager, (yyvsp[(1) - (2)].expression), (yyvsp[(1) - (2)].expression)->u.proje->al);
     }
@@ -1791,7 +1792,7 @@ yyreduce:
   case 36:
 
 /* Line 1455 of yacc.c  */
-#line 253 "../QL/gram.y"
+#line 254 "gram.y"
     {
 		(yyval.relAttrList) = NULL;
 	}
@@ -1800,7 +1801,7 @@ yyreduce:
   case 37:
 
 /* Line 1455 of yacc.c  */
-#line 256 "../QL/gram.y"
+#line 257 "gram.y"
     {
         (yyval.relAttrList) = (yyvsp[(1) - (1)].relAttrList);
     }
@@ -1809,7 +1810,7 @@ yyreduce:
   case 38:
 
 /* Line 1455 of yacc.c  */
-#line 261 "../QL/gram.y"
+#line 262 "gram.y"
     {
         (yyval.condition) = NEW(Condition);
 		(yyval.condition)->kind = CompOpCond;
@@ -1823,7 +1824,7 @@ yyreduce:
   case 39:
 
 /* Line 1455 of yacc.c  */
-#line 269 "../QL/gram.y"
+#line 270 "gram.y"
     {
         (yyval.condition) = NEW(Condition);
 		(yyval.condition)->kind = InCond;
@@ -1836,7 +1837,7 @@ yyreduce:
   case 40:
 
 /* Line 1455 of yacc.c  */
-#line 276 "../QL/gram.y"
+#line 277 "gram.y"
     {
         (yyval.condition) = NEW(Condition);
 		(yyval.condition)->kind = AndCond;
@@ -1849,7 +1850,7 @@ yyreduce:
   case 41:
 
 /* Line 1455 of yacc.c  */
-#line 283 "../QL/gram.y"
+#line 284 "gram.y"
     {
         (yyval.condition) = NEW(Condition);
 		(yyval.condition)->kind = OrCond;
@@ -1862,7 +1863,7 @@ yyreduce:
   case 42:
 
 /* Line 1455 of yacc.c  */
-#line 290 "../QL/gram.y"
+#line 291 "gram.y"
     {
         (yyval.condition) = NEW(Condition);
 		(yyval.condition)->kind = NotCond;
@@ -1874,7 +1875,7 @@ yyreduce:
   case 43:
 
 /* Line 1455 of yacc.c  */
-#line 296 "../QL/gram.y"
+#line 297 "gram.y"
     {
 		(yyval.condition) = (yyvsp[(2) - (3)].condition);
 	}
@@ -1883,49 +1884,49 @@ yyreduce:
   case 44:
 
 /* Line 1455 of yacc.c  */
-#line 302 "../QL/gram.y"
+#line 303 "gram.y"
     { (yyval.compOp) = EQ_OP; }
     break;
 
   case 45:
 
 /* Line 1455 of yacc.c  */
-#line 303 "../QL/gram.y"
+#line 304 "gram.y"
     { (yyval.compOp) = LT_OP; }
     break;
 
   case 46:
 
 /* Line 1455 of yacc.c  */
-#line 304 "../QL/gram.y"
+#line 305 "gram.y"
     { (yyval.compOp) = GT_OP; }
     break;
 
   case 47:
 
 /* Line 1455 of yacc.c  */
-#line 305 "../QL/gram.y"
+#line 306 "gram.y"
     { (yyval.compOp) = LE_OP; }
     break;
 
   case 48:
 
 /* Line 1455 of yacc.c  */
-#line 306 "../QL/gram.y"
+#line 307 "gram.y"
     { (yyval.compOp) = GE_OP; }
     break;
 
   case 49:
 
 /* Line 1455 of yacc.c  */
-#line 307 "../QL/gram.y"
+#line 308 "gram.y"
     { (yyval.compOp) = NE_OP; }
     break;
 
   case 50:
 
 /* Line 1455 of yacc.c  */
-#line 311 "../QL/gram.y"
+#line 312 "gram.y"
     {
 		(yyval.relAttrValue) = NEW(RelAttrValue);
 		(yyval.relAttrValue)->isValue = 0;
@@ -1936,7 +1937,7 @@ yyreduce:
   case 51:
 
 /* Line 1455 of yacc.c  */
-#line 316 "../QL/gram.y"
+#line 317 "gram.y"
     {
 		(yyval.relAttrValue) = NEW(RelAttrValue);
 		(yyval.relAttrValue)->isValue = 1;
@@ -1947,7 +1948,7 @@ yyreduce:
   case 52:
 
 /* Line 1455 of yacc.c  */
-#line 323 "../QL/gram.y"
+#line 324 "gram.y"
     {
 		(yyval.relAttrValueList) = NEW(RelAttrValueList);
 		(yyval.relAttrValueList)->av = (yyvsp[(1) - (1)].relAttrValue);
@@ -1958,7 +1959,7 @@ yyreduce:
   case 53:
 
 /* Line 1455 of yacc.c  */
-#line 328 "../QL/gram.y"
+#line 329 "gram.y"
     {
         RelAttrValueList *p = GET_LAST(RelAttrValueList, (yyvsp[(1) - (3)].relAttrValueList), next);
 		p->next = NEW(RelAttrList);
@@ -1971,7 +1972,7 @@ yyreduce:
   case 54:
 
 /* Line 1455 of yacc.c  */
-#line 338 "../QL/gram.y"
+#line 339 "gram.y"
     {
 		(yyval.relAttr) = NEW(RelAttr);
         (yyval.relAttr)->relName = NULL;
@@ -1982,7 +1983,7 @@ yyreduce:
   case 55:
 
 /* Line 1455 of yacc.c  */
-#line 343 "../QL/gram.y"
+#line 344 "gram.y"
     {
 		(yyval.relAttr) = NEW(RelAttr);
         (yyval.relAttr)->relName = (yyvsp[(1) - (3)].string);
@@ -1993,7 +1994,7 @@ yyreduce:
   case 56:
 
 /* Line 1455 of yacc.c  */
-#line 350 "../QL/gram.y"
+#line 351 "gram.y"
     {
 		(yyval.relAttrList) = NEW(RelAttrList);
 		(yyval.relAttrList)->a = (yyvsp[(1) - (1)].relAttr);
@@ -2004,7 +2005,7 @@ yyreduce:
   case 57:
 
 /* Line 1455 of yacc.c  */
-#line 355 "../QL/gram.y"
+#line 356 "gram.y"
     {
         RelAttrList *p = GET_LAST(RelAttrList, (yyvsp[(1) - (3)].relAttrList), next);
 		p->next = NEW(RelAttrList);
@@ -2017,7 +2018,7 @@ yyreduce:
   case 58:
 
 /* Line 1455 of yacc.c  */
-#line 364 "../QL/gram.y"
+#line 365 "gram.y"
     {
 		(yyval.idList) = NEW(IDList);
 		(yyval.idList)->id = (yyvsp[(1) - (1)].string);
@@ -2028,7 +2029,7 @@ yyreduce:
   case 59:
 
 /* Line 1455 of yacc.c  */
-#line 369 "../QL/gram.y"
+#line 370 "gram.y"
     {
 		IDList *p = GET_LAST(IDList, (yyvsp[(1) - (3)].idList), next);
 		p->next = NEW(IDList);
@@ -2041,7 +2042,7 @@ yyreduce:
 
 
 /* Line 1455 of yacc.c  */
-#line 2045 "y.tab.c"
+#line 2046 "gram.c"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -2253,13 +2254,13 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 377 "../QL/gram.y"
+#line 378 "gram.y"
 
 
-int parse(PF_Manager &pfm, SM_Manager &smm, QL_Manager &qlm) {
-    pfManager = &pfm;
-    smManager = &smm;
-    qlManager = &qlm;
+int sbp_parse(PF_Manager *pfm, SM_Manager *smm, QL_Manager *qlm) {
+    pfManager = pfm;
+    smManager = smm;
+    qlManager = qlm;
     return yyparse();
 }
 

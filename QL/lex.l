@@ -1,5 +1,8 @@
 %{
 
+#include "planner.h"
+#include "ql.h"
+#include "sm.h"
 #include "gram.h"
 
 %}

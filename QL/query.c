@@ -1,5 +1,17 @@
 #include "sbpdb.h"
+#include "AttrOpFunc.h"
 #include "ql.h"
+
+int typeToLength(AttrType type, void *ldata, void *rdata) {
+	switch (type) {
+	case INT:
+		return INT_SIZE;
+	case FLOAT:
+		return FLOAT_SIZE;
+	case STRING:
+		return STRING_SIZE;
+	}
+}
 
 RM_Record *rmrCopy(RM_Record *src) {
 	RM_Record *dst;
@@ -29,12 +41,34 @@ AttrSel *attrSelCopy(AttrSel *src) {
 	return dst;
 }
 
+AttrSel *findAttrSel(AttrSel *as, RelAttr *a) {
+	AttrSel *p;
+	for (p = as; p; p = p->next) {
+		if ((!a->relName || !strcmp(a->relName, as->relName)) &&
+				!strcmp(a->attrName, as->attrName)) {
+			return p;
+		}
+	}
+	return NULL;
+}
+
 void destroyAttrSel(AttrSel *as) {
 	if (as == NULL) return;
 	destroyAttrSel(as->next);
 	if (as->relName) free(as->relName);
 	free(as->attrName);
 	free(as);
+}
+
+int isSimpleSelExp(struct selection_exp *exp) {
+	Condition *c = exp->cond;
+	if (exp->exp->kind != Relation)
+		return 0;
+	if (c->kind != CompOpCond)
+		return 0;
+	if (c->u.coc->left->isValue)
+		return 0;
+	return c->u.coc->right->isValue;
 }
 
 AttrSel *attrToAttrSel(RelAttrList *al) {
@@ -60,7 +94,7 @@ AttrSel *attrToAttrSel(RelAttrList *al) {
 			p = p->next;
 		}
 	}
-	return ai;
+	return as;
 }
 
 AttrSel *catAttrSel(AttrSel *left, AttrSel *right, int leftsize) {
@@ -101,9 +135,13 @@ RC QL_RelExpScanClose(QL_Manager *qlm, struct relation *exp) {
 		free(exp->cur);
 		exp->cur = NULL;
 	}
+	qlm->rmm->CloseFile(qlm->rmm, exp->fh);
+	free(exp->fh);
+	exp->fh = NULL;
 	if (exp->isIndexed) {
 		//TODO
 	} else {
+		exp->u.fs->CloseScan(exp->u.fs);
 		free(exp->u.fs);
 		exp->u.fs = NULL;
 	}
@@ -136,8 +174,13 @@ RC QL_RelExpScanOpen(QL_Manager *qlm, struct relation *exp) {
 	exp->as = as;
 	exp->cur = NULL;
 	exp->isIndexed = 0;
+	exp->fh = NEW(RM_FileHandle);
+	initRM_FileHandle(exp->fh);
+	qlm->rmm->OpenFile(qlm->rmm, exp->id, exp->fh);
 	exp->u.fs = NEW(RM_FileScan);
 	initRM_FileScan(exp->u.fs);
+	exp->u.fs->OpenScan(exp->u.fs, exp->fh, INT, 0, 0, NO_OP, NULL, NO_HINT);
+	return NORMAL;
 }
 
 RC QL_RelGetTuple(QL_Manager *qlm, struct relation *exp, int isNext,
@@ -146,28 +189,26 @@ RC QL_RelGetTuple(QL_Manager *qlm, struct relation *exp, int isNext,
 		if (exp->cur == NULL) exp->cur = NEW(RM_Record);
 		if (exp->u.fs->GetNextRec(exp->u.fs, exp->cur) != NORMAL)
 			return QL_TUPLENOTFOUND;
-		qlt->rmr = rmrCopy(exp->cur);
-		qlt->as = attrSelCopy(exp->as);
 	} else {
 		if (exp->cur == NULL) return QL_TUPLENOTFOUND;
-		qlt->rmr = rmrCopy(exp->cur);
-		qlt->as = attrSelCopy(exp->as);
 	}
+	qlt->rmr = rmrCopy(exp->cur);
+	qlt->as = attrSelCopy(exp->as);
 	return NORMAL;
 }
 
 RC QL_ProjExpScanClose(QL_Manager *qlm, struct projection_exp *exp) {
-	return QL_ExpScanClose(exp->exp);
+	return QL_ExpScanClose(qlm, exp->exp);
 }
 
 RC QL_ProjExpScanOpen(QL_Manager *qlm, struct projection_exp *exp) {
-	return QL_ExpScanOpen(exp->exp);
+	return QL_ExpScanOpen(qlm, exp->exp);
 }
 
 RC QL_ProjGetTuple(QL_Manager *qlm, struct projection_exp *exp, int isNext,
 		QL_Tuple *qlt) {
 	AttrSel *as = attrToAttrSel(exp->al);
-	RC re = QL_GetTuple(exp->exp, isNext, qlt);
+	RC re = QL_GetTuple(qlm, exp->exp, isNext, qlt);
 	if (re != NORMAL) return re;
 	while (as) {
 		AttrSel *p;
@@ -177,7 +218,7 @@ RC QL_ProjGetTuple(QL_Manager *qlm, struct projection_exp *exp, int isNext,
 					!strcmp(as->attrName, p->attrName)) {
 				if (is_found) {
 					fprintf(stderr, "Already Found: %s\n", as->attrName);
-					return QL_ATTRARLRADYFOUND;
+					return QL_ATTRALREADYFOUND;
 				}
 				is_found = 1;
 				if (!as->relName)
@@ -197,16 +238,115 @@ RC QL_ProjGetTuple(QL_Manager *qlm, struct projection_exp *exp, int isNext,
 }
 
 RC QL_SelExpScanClose(QL_Manager *qlm, struct selection_exp *exp) {
-	return QL_ExpScanClose(exp->exp);
+	return QL_ExpScanClose(qlm, exp->exp);
 }
 
 RC QL_SelExpScanOpen(QL_Manager *qlm, struct selection_exp *exp) {
-	return QL_ExpScanOpen(exp->exp);
+	CompOpCondition *coc = exp->cond->u.coc;
+	if (isSimpleSelExp(exp)) {
+		AttrCat *ac;
+		int size, i;
+		AttrSel *as = NULL, *asp;
+		struct relation *rel = exp->exp->u.rel;
+		int ret = SM_GetAttrCats(qlm->smm, rel->id, &ac, &size);
+		if (ret != NORMAL) return SM_NOREL;
+		for (i = 0; i < size; i++) {
+			AttrSel *tmp = NEW(AttrSel);
+			tmp->attrName = strdup(ac[i].attrName);
+			tmp->relName = strdup(ac[i].relName);
+			tmp->attrType = ac[i].attrType;
+			tmp->attrLength = ac[i].attrLength;
+			tmp->offset = ac[i].offset;
+			tmp->next = NULL;
+			if (as == NULL) {
+				asp = as = tmp;
+			} else {
+				asp = asp->next = tmp;
+			}
+		}
+		free(ac);
+		rel->as = as;
+		asp = findAttrSel(as, coc->left->u.a);
+		if (asp == NULL) {
+			return QL_ATTRNOTFOUND;
+		}
+		if (asp->attrType != coc->right->u.v->type) {
+			return QL_WRONGTYPE;
+		}
+		rel->cur = NULL;
+		rel->isIndexed = 0;
+		rel->fh = NEW(RM_FileHandle);
+		initRM_FileHandle(rel->fh);
+		qlm->rmm->OpenFile(qlm->rmm, rel->id, rel->fh);
+		rel->u.fs = NEW(RM_FileScan);
+		initRM_FileScan(rel->u.fs);
+		rel->u.fs->OpenScan(rel->u.fs, rel->fh,
+				asp->attrType, asp->attrLength, asp->offset,
+				coc->op, coc->right->u.v->data, NO_HINT);
+	} else {
+		return QL_ExpScanOpen(qlm, exp->exp);
+	}
 }
 
 RC QL_SelGetTuple(QL_Manager *qlm, struct selection_exp *exp, int isNext,
 		QL_Tuple *qlt) {
-
+	if (isSimpleSelExp(exp)) {
+		struct relation *rel = exp->exp->u.rel;
+		if (isNext) {
+			if (rel->cur == NULL) rel->cur = NEW(RM_Record);
+			if (rel->u.fs->GetNextRec(rel->u.fs, rel->cur) != NORMAL)
+				return QL_TUPLENOTFOUND;
+		} else {
+			if (rel->cur == NULL) return QL_TUPLENOTFOUND;
+		}
+		qlt->rmr = rmrCopy(rel->cur);
+		qlt->as = attrSelCopy(rel->as);
+		return NORMAL;
+	} else {
+		int ret;
+		CompOpCondition *coc = exp->cond->u.coc;
+		if (coc->left->isValue && coc->right->isValue) {
+			if (coc->left->u.v->type != coc->right->u.v->type) {
+				return QL_WRONGTYPE;
+			}
+			int l = typeToLength(coc->left->u.v->type,
+					coc->left->u.v->data,
+					coc->right->u.v->data);
+			if (!typeOP[coc->left->u.v->type][coc->op](
+					coc->left->u.v->data,
+					coc->right->u.v->data,
+					l)) {
+				return QL_TUPLENOTFOUND;
+			}
+		}
+		if ((ret = QL_GetTuple(qlm, exp->exp, isNext, qlt)) != NORMAL)
+			return ret;
+		if (coc->left->isValue && coc->right->isValue) {
+			int l = typeToLength(coc->left->u.v->type,
+					coc->left->u.v->data,
+					coc->right->u.v->data);
+			if (typeOP[coc->left->u.v->type][coc->op](
+					coc->left->u.v->data,
+					coc->right->u.v->data,
+					l)) {
+				return NORMAL;
+			}
+		}
+		while (1) {
+			AttrSel *left = findAttrSel(qlt->as, coc->left->u.a);
+			AttrSel *right = findAttrSel(qlt->as, coc->right->u.a);
+			if (left->attrType != right->attrType) {
+				return QL_WRONGTYPE;
+			}
+			if (typeOP[left->attrType][coc->op](
+					qlt->rmr->data+left->offset,
+					qlt->rmr->data+right->offset,
+					left->attrLength))
+				return NORMAL;
+			if ((ret = QL_GetTuple(qlm, exp->exp, isNext, qlt)) != NORMAL)
+				return ret;
+		}
+	}
 }
 
 RC QL_ProdExpScanClose(QL_Manager *qlm, struct product_exp *exp) {

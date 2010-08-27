@@ -15,13 +15,13 @@ void QL_PrintSummary(int count) {
 RC QL_Select(QL_Manager *self, Expression *exp, RelAttrList *al) {
 	QL_Tuple tuple;
 	int count = 0, ret;
-	QL_ScanOpen(self, exp);
+	QL_ExpScanOpen(self, exp);
 	QL_PrintHeader(al);
 	while ((ret = QL_GetNext(self, exp, &tuple)) == NORMAL) {
 		QL_PrintTuple(&tuple);
 		count++;
 	}
-	QL_ScanClose(self, exp);
+	QL_ExpScanClose(self, exp);
 	QL_PrintSummary(count);
 	return NORMAL;
 }
@@ -41,7 +41,7 @@ RC QL_Insert(QL_Manager *self, char *relName, ValueList *values) {
     for (i = 0; i < self->smm->attrCount; i++)
         if (strcmp(self->smm->attrRecords[i].relName, relName) == 0) {
             if (self->smm->attrRecords[i].attrType != p->v->type)
-                return QL_WRONGVALUETYPE;
+                return QL_WRONGTYPE;
             memcpy(pData + self->smm->attrRecords[i].offset,
                    p->v->data, self->smm->attrRecords[i].attrLength);
             p = p->next;

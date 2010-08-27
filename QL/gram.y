@@ -3,10 +3,11 @@
 #include <stdio.h>
 
 #include "sbpdb.h"
-#include "sm.h"
+#include "planner.h"
 #include "ql.h"
+#include "sm.h"
 
-#include "lex.c"
+#include "lex.h"
 
 Expression *translateQuery(RelAttrList *al, IDList *rl, Condition *cond) {
 	Expression *rels = NULL;
@@ -21,8 +22,8 @@ Expression *translateQuery(RelAttrList *al, IDList *rl, Condition *cond) {
 	ret->u.proje->exp->u.sele->cond = cond;
 	while (p) {
 		if (rels) {
-			Expression *tmp = NEW(Expression)
-			Expression *left, right;
+			Expression *tmp = NEW(Expression);
+			Expression *left, *right;
 			tmp->kind = ProductExp;
 			tmp->u.prode = NEW(struct product_exp);
 			left = rels;
@@ -376,9 +377,9 @@ rel_list:
 
 %%
 
-int parse(PF_Manager &pfm, SM_Manager &smm, QL_Manager &qlm) {
-    pfManager = &pfm;
-    smManager = &smm;
-    qlManager = &qlm;
+int sbp_parse(PF_Manager *pfm, SM_Manager *smm, QL_Manager *qlm) {
+    pfManager = pfm;
+    smManager = smm;
+    qlManager = qlm;
     return yyparse();
 }

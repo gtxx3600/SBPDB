@@ -11,6 +11,10 @@
 typedef struct QL_Manager QL_Manager;
 typedef struct QL_Tuple QL_Tuple;
 
+int sbp_parse(PF_Manager *pfm, SM_Manager *smm, QL_Manager *qlm);
+
+RC QL_ExpScanOpen(QL_Manager *qlm, Expression *exp);
+RC QL_ExpScanClose(QL_Manager *qlm, Expression *exp);
 RC QL_GetCurrent(QL_Manager *qlm, Expression *exp, QL_Tuple *qlt);
 RC QL_GetNext(QL_Manager *qlm, Expression *exp, QL_Tuple *qlt);
 

@@ -22,9 +22,24 @@ Expression *QL_transExp(Expression *exp) {
 	case SelectionExp:
 		exp->u.sele->exp = QL_transExp(exp->u.sele->exp);
 		switch (exp->u.sele->cond->kind) {
-		case CompOpCond:
+		case CompOpCond: {
+			Condition *c = exp->u.sele->cond;
+			if (c->u.coc->left->isValue && c->u.coc->right->isValue == 0) {
+				RelAttrValue *tmp = c->u.coc->left;
+				c->u.coc->left = c->u.coc->right;
+				c->u.coc->right = tmp;
+				switch (c->u.coc->op) {
+				case EQ_OP: break;
+				case LT_OP: c->u.coc->op = GT_OP;
+				case GT_OP: c->u.coc->op = LT_OP;
+				case LE_OP: c->u.coc->op = GE_OP;
+				case GE_OP: c->u.coc->op = LE_OP;
+				case NE_OP: break;
+				}
+			}
 			exp->u.sele->exp = QL_transExp(exp->u.sele->exp);
 			return exp;
+		}
 		case AndCond: {
 			Expression *e = NEW(Expression);
 			e->kind = SelectionExp;

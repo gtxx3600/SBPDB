@@ -7,7 +7,7 @@
 	calloc(sizeof(type), 1)
 
 #define GET_LAST(type, first, next) ({ \
-	(type *) __p = first; \
+	type * __p = first; \
 	while (__p->next) __p = __p->next; \
 	__p; })
 
@@ -130,6 +130,7 @@ struct relation {
 	union {
 		RM_FileScan *fs;
 	} u;
+	RM_FileHandle *fh;
 	RM_Record *cur;
 };
 
