@@ -54,9 +54,10 @@ int (*intOP[OP_NUM])(void* left,void*right,int len) =
 		intLE,
 		intGE,
 		intNE,
+		defaultOP,
 		intINC,
 		intDEC,
-		defaultOP,
+
 };
 
 /*    STRING    */
@@ -105,9 +106,10 @@ int (*strOP[OP_NUM])(void* left,void*right,int len) =
 		strLE,
 		strGE,
 		strNE,
+		defaultOP,
 		strINC,
 		strDEC,
-		defaultOP,
+
 };
 
 /*    FLOAT    */
@@ -153,9 +155,10 @@ int (*floatOP[OP_NUM])(void* left,void*right,int len) =
 		floatLE,
 		floatGE,
 		floatNE,
+		defaultOP,
 		floatINC,
 		floatDEC,
-		defaultOP,
+
 };
 
 
