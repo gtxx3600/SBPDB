@@ -31,6 +31,8 @@ int EntryNumInNode(AttrType at,int attrLength);
 
 RC insertIntoRoot(const IX_HeadPage *head,PF_FileHandle* pffh, void *pData, const RID *rid);
 RC deleteFromRoot(const IX_HeadPage *head,PF_FileHandle* pffh, void *pData, const RID *rid);
+PageNum findStartPage(IX_IndexHandle *idxh);
+RC findEQRegion(IX_IndexHandle *idxh, PageNum* left ,int* left_offset, PageNum* right, int* right_offset, void* pData);
 #define INSERT_DATA_INTO_NODE(node_use_in_macro)				int i;\
 for(i = 0; i < node_use_in_macro->totalEntry - p; i++)\
 {\
