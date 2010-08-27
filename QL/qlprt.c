@@ -153,6 +153,11 @@ void prtNotCondition(NotCondition *nc, int d) {
 }
 
 void prtCondition(Condition *cond, int d) {
+	if (cond == NULL) {
+		indent(d);
+		DEPRT("Condition NULL\n");
+		return;
+	}
 	switch (cond->kind) {
 	case InCond:
 		prtInCondition(cond->u.ic, d);

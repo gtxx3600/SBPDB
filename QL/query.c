@@ -25,12 +25,16 @@ AttrSel *findAttrSel(AttrSel *as, RelAttr *a) {
 	return NULL;
 }
 
+char *getDataFromAttr(AttrSel *as, RM_Record *rmr, RelAttr *a) {
+	AttrSel *p = findAttrSel(as, a);
+	return rmr->data + p->offset;
+}
+
 char *getDataFromRecord(AttrSel *as, RM_Record *rmr, RelAttrValue *av) {
 	if (av->isValue) {
 		return av->u.v->data;
 	} else {
-		AttrSel *p = findAttrSel(as, av->u.a);
-		return rmr->data + p->offset;
+		return getDataFromAttr(as, rmr, av->u.a);
 	}
 }
 
@@ -81,6 +85,7 @@ void destroyAttrSel(AttrSel *as) {
 
 int isSimpleSelExp(struct selection_exp *exp) {
 	Condition *c = exp->cond;
+	if (c == NULL) return 0;
 	if (exp->exp->kind != Relation)
 		return 0;
 	if (c->kind != CompOpCond)
@@ -151,69 +156,90 @@ RC QL_GetNext(QL_Manager *qlm, Expression *exp, QL_Tuple *qlt) {
 }
 
 RC QL_RelExpScanClose(QL_Manager *qlm, struct relation *exp) {
-	if (exp->cur) {
-		free(exp->cur);
-		exp->cur = NULL;
-	}
-	qlm->rmm->CloseFile(qlm->rmm, exp->fh);
-	free(exp->fh);
-	exp->fh = NULL;
-	if (exp->isIndexed) {
-		//TODO
+	if (exp->exp) {
+		QL_ExpScanClose(qlm, exp->exp);
+		exp->exp = NULL;
+		return NORMAL;
 	} else {
-		exp->u.fs->CloseScan(exp->u.fs);
-		free(exp->u.fs);
-		exp->u.fs = NULL;
+		if (exp->cur) {
+			free(exp->cur);
+			exp->cur = NULL;
+		}
+		qlm->rmm->CloseFile(qlm->rmm, exp->fh);
+		free(exp->fh);
+		exp->fh = NULL;
+		if (exp->isIndexed) {
+			//TODO
+		} else {
+			exp->u.fs->CloseScan(exp->u.fs);
+			free(exp->u.fs);
+			exp->u.fs = NULL;
+		}
+		destroyAttrSel(exp->as);
+		exp->as = NULL;
+		return NORMAL;
 	}
-	destroyAttrSel(exp->as);
-	exp->as = NULL;
-	return NORMAL;
 }
 
 RC QL_RelExpScanOpen(QL_Manager *qlm, struct relation *exp) {
-	AttrCat *ac;
-	int size, i;
-	AttrSel *as = NULL, *asp;
-	int ret = SM_GetAttrCats(qlm->smm, exp->id, &ac, &size);
-	if (ret != NORMAL) return SM_NOREL;
-	for (i = 0; i < size; i++) {
-		AttrSel *tmp = NEW(AttrSel);
-		tmp->attrName = strdup(ac[i].attrName);
-		tmp->relName = strdup(ac[i].relName);
-		tmp->attrType = ac[i].attrType;
-		tmp->attrLength = ac[i].attrLength;
-		tmp->offset = ac[i].offset;
-		tmp->next = NULL;
-		if (as == NULL) {
-			asp = as = tmp;
-		} else {
-			asp = asp->next = tmp;
+	if (checkInTables(qlm->smm, exp->id)) {
+		AttrCat *ac;
+		int size, i;
+		AttrSel *as = NULL, *asp;
+		int ret = SM_GetAttrCats(qlm->smm, exp->id, &ac, &size);
+		if (ret != NORMAL) return SM_NOREL;
+		for (i = 0; i < size; i++) {
+			AttrSel *tmp = NEW(AttrSel);
+			tmp->attrName = strdup(ac[i].attrName);
+			tmp->relName = strdup(ac[i].relName);
+			tmp->attrType = ac[i].attrType;
+			tmp->attrLength = ac[i].attrLength;
+			tmp->offset = ac[i].offset;
+			tmp->next = NULL;
+			if (as == NULL) {
+				asp = as = tmp;
+			} else {
+				asp = asp->next = tmp;
+			}
 		}
+		free(ac);
+		exp->as = as;
+		exp->cur = NULL;
+		exp->exp = NULL;
+		exp->isIndexed = 0;
+		exp->fh = NEW(RM_FileHandle);
+		initRM_FileHandle(exp->fh);
+		qlm->rmm->OpenFile(qlm->rmm, exp->id, exp->fh);
+		exp->u.fs = NEW(RM_FileScan);
+		initRM_FileScan(exp->u.fs);
+		return exp->u.fs->OpenScan(exp->u.fs, exp->fh, INT, 0, 0, NO_OP, NULL, NO_HINT);
+	} else if (checkInViews(qlm->smm, exp->id)) {
+		ViewList *p = qlm->smm->views;
+		while (strcmp(p->name, exp->id)) p = p->next;
+		exp->exp = p->exp;
+		QL_ExpScanOpen(qlm, exp->exp);
+		return NORMAL;
 	}
-	free(ac);
-	exp->as = as;
-	exp->cur = NULL;
-	exp->isIndexed = 0;
-	exp->fh = NEW(RM_FileHandle);
-	initRM_FileHandle(exp->fh);
-	qlm->rmm->OpenFile(qlm->rmm, exp->id, exp->fh);
-	exp->u.fs = NEW(RM_FileScan);
-	initRM_FileScan(exp->u.fs);
-	return exp->u.fs->OpenScan(exp->u.fs, exp->fh, INT, 0, 0, NO_OP, NULL, NO_HINT);
+	fprintf(stderr, "Error: relation %s doesn't exist\n", exp->id);
+	return SM_NOREL;
 }
 
 RC QL_RelGetTuple(QL_Manager *qlm, struct relation *exp, int isNext,
 		QL_Tuple *qlt) {
-	if (isNext) {
-		if (exp->cur == NULL) exp->cur = NEW(RM_Record);
-		if (exp->u.fs->GetNextRec(exp->u.fs, exp->cur) != NORMAL)
-			return QL_TUPLENOTFOUND;
+	if (exp->exp) {
+		return QL_GetTuple(qlm, exp->exp, isNext, qlt);
 	} else {
-		if (exp->cur == NULL) return QL_TUPLENOTFOUND;
+		if (isNext) {
+			if (exp->cur == NULL) exp->cur = NEW(RM_Record);
+			if (exp->u.fs->GetNextRec(exp->u.fs, exp->cur) != NORMAL)
+				return QL_TUPLENOTFOUND;
+		} else {
+			if (exp->cur == NULL) return QL_TUPLENOTFOUND;
+		}
+		qlt->rmr = rmrCopy(exp->cur);
+		qlt->as = attrSelCopy(exp->as);
+		return NORMAL;
 	}
-	qlt->rmr = rmrCopy(exp->cur);
-	qlt->as = attrSelCopy(exp->as);
-	return NORMAL;
 }
 
 RC QL_ProjExpScanClose(QL_Manager *qlm, struct projection_exp *exp) {
@@ -263,10 +289,11 @@ RC QL_SelExpScanClose(QL_Manager *qlm, struct selection_exp *exp) {
 }
 
 RC QL_SelExpScanOpen(QL_Manager *qlm, struct selection_exp *exp) {
-	CompOpCondition *coc = exp->cond->u.coc;
-	if (isSimpleSelExp(exp)) {
+	if (isSimpleSelExp(exp) &&
+			checkInTables(qlm->smm, exp->exp->u.rel->id)) {
 		AttrCat *ac;
 		int size, i;
+		CompOpCondition *coc = exp->cond->u.coc;
 		AttrSel *as = NULL, *asp;
 		struct relation *rel = exp->exp->u.rel;
 		int ret = SM_GetAttrCats(qlm->smm, rel->id, &ac, &size);
@@ -311,7 +338,7 @@ RC QL_SelExpScanOpen(QL_Manager *qlm, struct selection_exp *exp) {
 
 RC QL_SelGetTuple(QL_Manager *qlm, struct selection_exp *exp, int isNext,
 		QL_Tuple *qlt) {
-	if (isSimpleSelExp(exp)) {
+	if (isSimpleSelExp(exp) && exp->exp->u.rel->exp == NULL) {
 		struct relation *rel = exp->exp->u.rel;
 		if (isNext) {
 			if (rel->cur == NULL) rel->cur = NEW(RM_Record);
@@ -323,9 +350,12 @@ RC QL_SelGetTuple(QL_Manager *qlm, struct selection_exp *exp, int isNext,
 		qlt->rmr = rmrCopy(rel->cur);
 		qlt->as = attrSelCopy(rel->as);
 		return NORMAL;
+	} else if (exp->cond == NULL) {
+		return QL_GetTuple(qlm, exp->exp, isNext, qlt);
 	} else {
 		int ret;
-		CompOpCondition *coc = exp->cond->u.coc;
+		CompOpCondition *coc;
+		coc = exp->cond->u.coc;
 		if (coc->left->isValue && coc->right->isValue) {
 			if (coc->left->u.v->type != coc->right->u.v->type) {
 				return QL_WRONGTYPE;

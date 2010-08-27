@@ -18,6 +18,7 @@ typedef struct Value Value;
 typedef struct ValueList ValueList;
 typedef struct RelAttrValue RelAttrValue;
 typedef struct RelAttrValueList RelAttrValueList;
+typedef struct AssignmentList AssignmentList;
 typedef struct Condition Condition;
 typedef struct InCondition InCondition;
 typedef struct CompOpCondition CompOpCondition;
@@ -81,6 +82,12 @@ struct RelAttrValueList {
 	RelAttrValueList *next;
 };
 
+struct AssignmentList {
+	RelAttr *left;
+	RelAttrValue *right;
+	AssignmentList *next;
+};
+
 struct InCondition {
 	RelAttrValueList *avl;
 	Expression *rel;
@@ -132,6 +139,7 @@ struct relation {
 	} u;
 	RM_FileHandle *fh;
 	RM_Record *cur;
+	Expression *exp;
 };
 
 struct union_exp {

@@ -66,19 +66,25 @@
      OR = 282,
      NOT = 283,
      AS = 284,
-     EQ = 285,
-     LT = 286,
-     GT = 287,
-     LE = 288,
-     GE = 289,
-     NE = 290,
-     IN = 291,
-     DATABASE = 292,
-     USE = 293,
-     NUMBER = 294,
-     ID = 295,
-     STRING_V = 296,
-     QUERY = 297
+     PRIMARY = 285,
+     KEY = 286,
+     EQ = 287,
+     LT = 288,
+     GT = 289,
+     LE = 290,
+     GE = 291,
+     NE = 292,
+     IN = 293,
+     DATABASE = 294,
+     USE = 295,
+     SET = 296,
+     FOREIGN = 297,
+     REFERENCES = 298,
+     CHECK = 299,
+     NUMBER = 300,
+     ID = 301,
+     STRING_V = 302,
+     QUERY = 303
    };
 #endif
 /* Tokens.  */
@@ -109,19 +115,25 @@
 #define OR 282
 #define NOT 283
 #define AS 284
-#define EQ 285
-#define LT 286
-#define GT 287
-#define LE 288
-#define GE 289
-#define NE 290
-#define IN 291
-#define DATABASE 292
-#define USE 293
-#define NUMBER 294
-#define ID 295
-#define STRING_V 296
-#define QUERY 297
+#define PRIMARY 285
+#define KEY 286
+#define EQ 287
+#define LT 288
+#define GT 289
+#define LE 290
+#define GE 291
+#define NE 292
+#define IN 293
+#define DATABASE 294
+#define USE 295
+#define SET 296
+#define FOREIGN 297
+#define REFERENCES 298
+#define CHECK 299
+#define NUMBER 300
+#define ID 301
+#define STRING_V 302
+#define QUERY 303
 
 
 
@@ -131,7 +143,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 64 "gram.y"
+#line 71 "gram.y"
 
     AttrInfo *attrInfo;
     AttrType attrType;
@@ -141,8 +153,10 @@ typedef union YYSTYPE
 	RelAttrList *relAttrList;
 	RelAttrValue *relAttrValue;
 	RelAttrValueList *relAttrValueList;
+	AssignmentList *assignmentList;
 	IDList *idList;
     Condition *condition;
+	CheckCondition *checkCondition;
 	Expression *expression;
     int compOp;
     int number;
@@ -151,7 +165,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 155 "gram.h"
+#line 169 "gram.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
