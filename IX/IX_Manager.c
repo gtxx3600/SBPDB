@@ -49,7 +49,7 @@ int        attrLength)
 	initPF_PageHandle(&l3);
 	initPF_PageHandle(&l4);
 
-	IX_HeadPage *head = (IX_HeadPage *)pData;
+
 
 	if((ret = this->pfm->CreateFile(this->pfm,tmp))!=NORMAL)
 	{
@@ -79,17 +79,19 @@ int        attrLength)
 	nl3 = (NODE*) l3.page;
 	nl4 = (NODE*) l4.page;
 	headph.GetData(&headph, &pData);
+	IX_HeadPage *head = (IX_HeadPage *)pData;
 	head->attrLength = attrLength;
 	head->attrType = attrType;
 	head->indexNo = indexNo;
 	head->root = r.pagenum;
 	head->maxEntryInNode = EntryNumInNode(attrType, attrLength);
+
 	nr->level = 0;
 	nb1->level = nb2->level = 1;
 	nl1->level = nl2->level = nl3->level = nl4->level = 2;
 	nr->totalEntry = 1;
 	nb1->totalEntry = nb2->totalEntry = 1;
-	nl1->totalEntry = nl2->totalEntry = nl3->totalEntry = nl4->totalEntry = 1;
+	nl1->totalEntry = nl2->totalEntry = nl3->totalEntry = nl4->totalEntry = 0;
 
 	funcOP[INC_OP](tmpvalue, tmpvalue2, attrLength);
 	funcOP[INC_OP](tmpvalue2, tmpvalue, attrLength);
@@ -174,7 +176,7 @@ IX_IndexHandle *indexHandle)
 	}
 	headph.GetData(&headph, &pData);
 	IX_HeadPage *head = (IX_HeadPage *)pData;
-	memcpy(&indexHandle->head, head, sizeof(head));
+	memcpy(&indexHandle->head, head, sizeof(IX_HeadPage));
 
 	pffh->UnpinPage(pffh, headph.pagenum);
 	return NORMAL;

@@ -35,7 +35,7 @@ int findPos(void *node,void* value, AttrType attrType,int attrLength)
 	int i;
 	for(i=0;i<total;i++)
 	{
-		if(funcOP[GT_OP](value, &n->values[i], attrLength))
+		if(funcOP[GT_OP]( &n->values[i],value, attrLength))
 		{
 			return i;
 		}
@@ -119,7 +119,7 @@ RC firstOP(IX_IndexHandle *idxh,void* pData,PageNum * outPage,int* outOffset,Com
 	idxh->pffh.GetThisPage(&idxh->pffh, branch, &bph);
 	b = (NODE*)bph.page;
 	int lpos = findPos(b,pData,idxh->head.attrType,idxh->head.attrLength);
-	PageNum leaf = r->pointers[lpos].page;
+	PageNum leaf = b->pointers[lpos].page;
 
 	PF_PageHandle lph;
 	initPF_PageHandle(&lph);
@@ -204,6 +204,7 @@ RC insertIntoLeaf(const IX_HeadPage *head,PF_FileHandle* pffh, PageNum leaf,void
 	n = (NODE*)leafph.page;
 	int ret;
 	int pos = findPos(n,pData,head->attrType,head-> attrLength);
+	printf("insert into page : %d, offset: %d\n",leaf, pos);
 	if(n->totalEntry >= ENTRYSINBTNODE)
 	{
 		ret = NEED_SPLIT;

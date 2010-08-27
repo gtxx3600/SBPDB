@@ -207,7 +207,6 @@ RC RM_InsertRec	(RM_FileHandle* this, const char *data, RID *rid)
 	{
 		if((ret = this->pf_FileHandle->AllocatePage(this->pf_FileHandle, &pfpageHandle))!= NORMAL)
 		{
-
 			return ret;
 		}
 		this->firstFree = pfpageHandle.pagenum;

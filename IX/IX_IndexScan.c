@@ -56,12 +56,14 @@ void checkCurr(IX_IndexScan* this)
 	{
 		this->curr = n->pointers[ENTRYSINBTNODE].page;
 		this->curr_offset = 0;
+		checkCurr(this);
 	}
 	if(this->curr == -1)
 	{
 		this->end = 1;
 	}
 	pffh->UnpinPage(pffh, tmp);
+
 }
 RC IX_GetNextEntry(IX_IndexScan* this, RID *rid)
 {
@@ -76,6 +78,7 @@ RC IX_GetNextEntry(IX_IndexScan* this, RID *rid)
 	int ret = NORMAL;
 	pffh->GetThisPage(pffh, this->curr, &cph);
 	NODE* n = (NODE*)cph.page;
+	printf("getNextEntry: currpage:%d, curr offset:%d\n",this->curr,this->curr_offset);
 	if(typeOP[this->idxh->head.attrType][this->op](&n->values[this->curr_offset], this->value, attrLength))
 	{
 		rid->pageNum = n->pointers[this->curr_offset].page;
