@@ -59,7 +59,7 @@ QL_Manager *qlManager;
 %token SEMICOLON CREATE DROP TABLE VIEW SELECT INSERT DELETE UPDATE
        LBRACE RBRACE COMMA INT_T STRING_T FLOAT_T HELP EXIT DOT
        INTO VALUES STAR FROM WHERE AND OR NOT AS
-       EQ LT GT LE GE NE IN
+       EQ LT GT LE GE NE IN DATABASE USE
 
 %union {
     AttrInfo *attrInfo;
@@ -100,16 +100,28 @@ QL_Manager *qlManager;
 %type <compOp> compOp;
 %type <expression> query;
 
+%start commands;
+
 %%
 
 commands:
-    /* empty */
-    | commands command
-    ;
+	command {
+		printf("> ");
+		fflush(stdout);
+	}
+	| commands command {
+		printf("> ");
+		fflush(stdout);
+	}
+	;
 
 command:
-    create_table
+	empty
+	| use_database
+	| create_database
+    | create_table
     | create_view
+	| drop_database
     | drop_table
     | drop_view
     | select
@@ -119,16 +131,41 @@ command:
     | exit
     ;
 
+empty:
+	SEMICOLON
+	;
+
 exit:
-	EXIT SEMICOLON {
+	EXIT SEMICOLON{
         SM_Exit(smManager);
+        return 0;
     }
 	;
 
 help:
-	HELP SEMICOLON {
+	HELP SEMICOLON{
         SM_Help(smManager);
     }
+	;
+
+use_database:
+	USE ID SEMICOLON {
+		int ret;
+		if ((ret = SM_UseDatabase(smManager, $2)) != NORMAL) {
+			fprintf(stderr, "Error: can't use database %s: %d\n", $2, ret);
+		}
+	}
+
+create_database:
+	CREATE DATABASE ID SEMICOLON {
+		SM_CreateDatabase(smManager, $3);
+	}
+	;
+
+drop_database:
+	DROP DATABASE ID SEMICOLON {
+		SM_DropDatabase(smManager, $3);
+	}
 	;
 
 create_table:

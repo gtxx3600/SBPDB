@@ -11,6 +11,7 @@ int typeToLength(AttrType type, void *ldata, void *rdata) {
 	case STRING:
 		return STRING_SIZE;
 	}
+	return -1;
 }
 
 RM_Record *rmrCopy(RM_Record *src) {
@@ -179,8 +180,7 @@ RC QL_RelExpScanOpen(QL_Manager *qlm, struct relation *exp) {
 	qlm->rmm->OpenFile(qlm->rmm, exp->id, exp->fh);
 	exp->u.fs = NEW(RM_FileScan);
 	initRM_FileScan(exp->u.fs);
-	exp->u.fs->OpenScan(exp->u.fs, exp->fh, INT, 0, 0, NO_OP, NULL, NO_HINT);
-	return NORMAL;
+	return exp->u.fs->OpenScan(exp->u.fs, exp->fh, INT, 0, 0, NO_OP, NULL, NO_HINT);
 }
 
 RC QL_RelGetTuple(QL_Manager *qlm, struct relation *exp, int isNext,
@@ -207,10 +207,12 @@ RC QL_ProjExpScanOpen(QL_Manager *qlm, struct projection_exp *exp) {
 
 RC QL_ProjGetTuple(QL_Manager *qlm, struct projection_exp *exp, int isNext,
 		QL_Tuple *qlt) {
-	AttrSel *as = attrToAttrSel(exp->al);
+	AttrSel *as = attrToAttrSel(exp->al), *asp;
 	RC re = QL_GetTuple(qlm, exp->exp, isNext, qlt);
+	printf("here\n");
 	if (re != NORMAL) return re;
-	while (as) {
+	asp = as;
+	while (asp) {
 		AttrSel *p;
 		int is_found = 0;
 		for (p = qlt->as; p; p = p->next) {
@@ -232,6 +234,7 @@ RC QL_ProjGetTuple(QL_Manager *qlm, struct projection_exp *exp, int isNext,
 			fprintf(stderr, "Not Found: %s\n", as->attrName);
 			return QL_ATTRNOTFOUND;
 		}
+		asp = asp->next;
 	}
 	qlt->as = as;
 	return NORMAL;
@@ -280,7 +283,7 @@ RC QL_SelExpScanOpen(QL_Manager *qlm, struct selection_exp *exp) {
 		qlm->rmm->OpenFile(qlm->rmm, rel->id, rel->fh);
 		rel->u.fs = NEW(RM_FileScan);
 		initRM_FileScan(rel->u.fs);
-		rel->u.fs->OpenScan(rel->u.fs, rel->fh,
+		return rel->u.fs->OpenScan(rel->u.fs, rel->fh,
 				asp->attrType, asp->attrLength, asp->offset,
 				coc->op, coc->right->u.v->data, NO_HINT);
 	} else {

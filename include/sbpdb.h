@@ -1,6 +1,8 @@
 #ifndef SBPDB_H
 #define SBPDB_H
 
+#define BASEDIR		"data"
+
 #define MAX_FILENAME   20
 
 #define ALL_PAGES					-1

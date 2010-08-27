@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #include "ql.h"
 
@@ -14,11 +16,16 @@ int main() {
 	initSM_Manager(&smm, &ixm, &rmm);
 	initQL_Manager(&qlm, &smm, &ixm, &rmm);
 
+	if (access(BASEDIR, 0))
+		system("mkdir "BASEDIR);
+	chdir(BASEDIR);
+//	system("ls");
 	while (!smm.isExit) {
 		printf("> ");
 		fflush(stdout);
 		sbp_parse(&pfm, &smm, &qlm);
 	}
-
+	SM_CloseDb(&smm);
+	printf("Bye\n");
 	return 0;
 }

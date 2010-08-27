@@ -30,8 +30,10 @@ ID      [A-Za-z][_A-Za-z0-9]*
 \*                      return STAR;
 exit                    return EXIT;
 help                    return HELP;
+use						return USE;
 create                  return CREATE;
 drop                    return DROP;
+database				return DATABASE;
 table                   return TABLE;
 view                    return VIEW;
 select                  return SELECT;

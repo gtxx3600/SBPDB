@@ -8,7 +8,12 @@
 #define ARRCHECK(p, type, size, max) do {\
 	if (size >= max) { \
 		while (size >= max) max += ARRDEFAULTSIZE; \
-		p = realloc(p, max * sizeof(type)); \
+		if (p) {\
+			p = realloc(p, max * sizeof(type)); \
+		} \
+		else {\
+			p = malloc(max * sizeof(type)); \
+		} \
 	} \
 } while (0)
 

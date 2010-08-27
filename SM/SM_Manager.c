@@ -5,11 +5,11 @@
 #include "rm.h"
 #include "sm.h"
 
-#define RELARRCHECK(size) \
-	ARRCHECK(self->relRecords, RelCat, size, self->relmax)
+#define RELARRCHECK(smm, size) \
+	ARRCHECK(smm->relRecords, RelCat, size, smm->relmax)
 
-#define ATTRARRCHECK(size) \
-	ARRCHECK(self->attrRecords, AttrCat, size, self->attrmax)
+#define ATTRARRCHECK(smm, size) \
+	ARRCHECK(smm->attrRecords, AttrCat, size, smm->attrmax)
 
 void LoadCat(SM_Manager *self) {
 	RM_FileScan relScan, attrScan;
@@ -21,7 +21,7 @@ void LoadCat(SM_Manager *self) {
 	initRM_Record(&rec);
 	while (relScan.GetNextRec(&relScan, &rec) == NORMAL) {
 		int i = self->relCount++;
-		RELARRCHECK(i);
+		RELARRCHECK(self, i);
 		self->relRecords[i].rid = rec.rid;
 		memcpy(&(self->relRecords[i]), rec.data, RELCAT_RSIZE);
 	}
@@ -30,7 +30,7 @@ void LoadCat(SM_Manager *self) {
 			INT, 0, 0, NO_OP, NULL, NO_HINT);
 	while (attrScan.GetNextRec(&attrScan, &rec) == NORMAL) {
 		int i = self->attrCount++;
-		ATTRARRCHECK(i);
+		ATTRARRCHECK(self, i);
 		self->attrRecords[i].rid = rec.rid;
 		memcpy(&(self->attrRecords[i]), rec.data, ATTRCAT_RSIZE);
 	}
@@ -74,7 +74,12 @@ RC SM_OpenDb(SM_Manager *self, char *dbName) {
 }
 
 RC SM_CloseDb(SM_Manager *self) {
-	SM_CloseCat(self);
+	if (self->dbname) {
+		SM_CloseCat(self);
+		free(self->dbname);
+		self->dbname = NULL;
+		chdir("..");
+	}
     return NORMAL;
 }
 
@@ -96,6 +101,41 @@ RC RelCatSetRelName(RelCat *rc, char *s) {
     return NORMAL;
 }
 
+RC SM_UseDatabase(SM_Manager *self, char *name) {
+	SM_CloseDb(self);
+	self->dbname = strdup(name);
+	return SM_OpenDb(self, name);
+}
+
+#define MKDIR "mkdir "
+RC SM_CreateDatabase(SM_Manager *self, char *name) {
+	char *command = malloc(strlen(MKDIR)+strlen(name)+1);
+	strcpy(command, MKDIR);
+
+	system(strcat(command, name));
+	free(command);
+	if (chdir(name) < 0) {
+		fprintf(stderr, "chdir error to %s\n", name);
+		return -1;
+	}
+	self->rmm->CreateFile(self->rmm, "relcat", RELCAT_RSIZE);
+	self->rmm->CreateFile(self->rmm, "attrcat", ATTRCAT_RSIZE);
+	chdir("..");
+
+	return NORMAL;
+}
+
+#define RMDIR "rm -rf "
+RC SM_DropDatabase(SM_Manager *self, char *name) {
+	char *command;
+	SM_CloseDb(self);
+	command = malloc(strlen(RMDIR)+strlen(name)+1);
+	strcpy(command, RMDIR);
+	system(strcat(command, name));
+	free(command);
+	return NORMAL;
+}
+
 RC SM_CreateTable(SM_Manager *self, char *relName, AttrInfo *attributes) {
 	int recordSize = 0, attrNum = 0;
 	AttrInfo *p;
@@ -112,7 +152,7 @@ RC SM_CreateTable(SM_Manager *self, char *relName, AttrInfo *attributes) {
         self->attrFile.InsertRec(&(self->attrFile), (char *)&actmp,
 				&actmp.rid);
         self->attrFile.ForcePages(&(self->attrFile), ALL_PAGES);
-		ATTRARRCHECK(j);
+		ATTRARRCHECK(self, j);
         memcpy(&(self->attrRecords[j]), &actmp, sizeof(AttrCat));
         recordSize += p->size;
     }
@@ -127,7 +167,7 @@ RC SM_CreateTable(SM_Manager *self, char *relName, AttrInfo *attributes) {
     rctmp.indexCount = 0;
     self->relFile.InsertRec(&(self->relFile), (char *)&rctmp, &rctmp.rid);
     self->relFile.ForcePages(&(self->relFile), ALL_PAGES);
-	RELARRCHECK(k);
+	RELARRCHECK(self, k);
     memcpy(&(self->relRecords[k]), &rctmp, sizeof(RelCat));
 	return NORMAL;
 }
@@ -176,7 +216,14 @@ RC initSM_Manager(SM_Manager *self, IX_Manager *ixm, RM_Manager *rmm) {
 	self->ixm = ixm;
 	self->rmm = rmm;
 	self->relmax = 0;
+	self->attrCount = 0;
 	self->attrmax = 0;
+	self->relCount = 0;
 	self->isExit = 0;
+	self->dbname = NULL;
+	self->relRecords = NULL;
+	self->attrRecords = NULL;
+	initRM_FileHandle(&self->relFile);
+	initRM_FileHandle(&self->attrFile);
 	return 0;
 }

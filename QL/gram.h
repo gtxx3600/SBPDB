@@ -73,10 +73,12 @@
      GE = 289,
      NE = 290,
      IN = 291,
-     NUMBER = 292,
-     ID = 293,
-     STRING_V = 294,
-     QUERY = 295
+     DATABASE = 292,
+     USE = 293,
+     NUMBER = 294,
+     ID = 295,
+     STRING_V = 296,
+     QUERY = 297
    };
 #endif
 /* Tokens.  */
@@ -114,10 +116,12 @@
 #define GE 289
 #define NE 290
 #define IN 291
-#define NUMBER 292
-#define ID 293
-#define STRING_V 294
-#define QUERY 295
+#define DATABASE 292
+#define USE 293
+#define NUMBER 294
+#define ID 295
+#define STRING_V 296
+#define QUERY 297
 
 
 
@@ -147,7 +151,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 151 "gram.h"
+#line 155 "gram.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

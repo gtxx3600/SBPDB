@@ -47,6 +47,7 @@ struct SM_Manager {
 	RM_FileHandle attrFile, relFile;
 	RelCat *relRecords;
 	AttrCat *attrRecords;
+	char *dbname;
 	int relCount, attrCount;
 	int relmax, attrmax;
 	int isExit;
@@ -56,6 +57,7 @@ RC SM_OpenDb(SM_Manager *self, char *dbName);
 RC SM_CloseDb(SM_Manager *self);
 RC SM_GetAttrCats(SM_Manager *self, char *relName,
 		AttrCat **ac, int *size);
+RC SM_UseDatabase(SM_Manager *self, char *name);
 RC SM_CreateTable(SM_Manager *self, char *relName, AttrInfo *attributes);
 RC SM_DropTable(SM_Manager *self, char *relName);
 RC SM_CreateView(SM_Manager *self, char *viewName, Expression *query);
