@@ -66,8 +66,9 @@ void checkCurr(IX_IndexScan* this)
 RC IX_GetNextEntry(IX_IndexScan* this, RID *rid)
 {
 	if(this->end)return IX_EOF;
-	checkCurr(this);
+
 	int attrLength = this->idxh->head.attrLength;
+	checkCurr(this);
 	#include "NODEL.h"
 	PF_FileHandle *pffh = &(this->idxh->pffh);
 	PF_PageHandle cph;
