@@ -81,10 +81,15 @@
      FOREIGN = 297,
      REFERENCES = 298,
      CHECK = 299,
-     NUMBER = 300,
-     ID = 301,
-     STRING_V = 302,
-     QUERY = 303
+     SHOW = 300,
+     DATABASES = 301,
+     TABLES = 302,
+     ROLLBACK = 303,
+     COMMIT = 304,
+     NUMBER = 305,
+     ID = 306,
+     STRING_V = 307,
+     QUERY = 308
    };
 #endif
 /* Tokens.  */
@@ -130,10 +135,15 @@
 #define FOREIGN 297
 #define REFERENCES 298
 #define CHECK 299
-#define NUMBER 300
-#define ID 301
-#define STRING_V 302
-#define QUERY 303
+#define SHOW 300
+#define DATABASES 301
+#define TABLES 302
+#define ROLLBACK 303
+#define COMMIT 304
+#define NUMBER 305
+#define ID 306
+#define STRING_V 307
+#define QUERY 308
 
 
 
@@ -143,7 +153,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 71 "gram.y"
+#line 74 "gram.y"
 
     AttrInfo *attrInfo;
     AttrType attrType;
@@ -165,7 +175,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 169 "gram.h"
+#line 179 "gram.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

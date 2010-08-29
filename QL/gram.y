@@ -53,6 +53,9 @@ Expression *translateQuery(RelAttrList *al, IDList *rl, Condition *cond) {
 }
 
 void yyerror(const char *str) {
+}
+
+void prterror(const char *str) {
     fprintf(stderr, "Error: %s\n", str);
 }
 
@@ -66,7 +69,7 @@ QL_Manager *qlManager;
        LBRACE RBRACE COMMA INT_T STRING_T FLOAT_T HELP EXIT DOT
        INTO VALUES STAR FROM WHERE AND OR NOT AS PRIMARY KEY
        EQ LT GT LE GE NE IN DATABASE USE SET FOREIGN REFERENCES
-       CHECK
+       CHECK SHOW DATABASES TABLES ROLLBACK COMMIT
 
 %union {
     AttrInfo *attrInfo;
@@ -118,17 +121,19 @@ QL_Manager *qlManager;
 
 commands:
 	command {
-		printf("> ");
-		fflush(stdout);
 	}
 	| commands command {
-		printf("> ");
-		fflush(stdout);
 	}
 	;
 
 command:
-	empty
+	error SEMICOLON {
+		prterror("syntax error");
+	}
+	| empty
+	| show
+	| commit
+	| rollback
 	| use_database
 	| create_database
     | create_table
@@ -146,6 +151,29 @@ command:
 
 empty:
 	SEMICOLON
+	;
+
+commit:
+	COMMIT SEMICOLON {
+		//PF_Commit();
+	}
+	;
+
+rollback:
+	ROLLBACK SEMICOLON {
+		//PF_Rollback();
+	}
+	;
+
+show:
+	SHOW DATABASES SEMICOLON {
+		SM_ShowDbs(smManager);
+	}
+	| SHOW TABLES SEMICOLON {
+		if (SM_ShowTbls(smManager)) {
+			fprintf(stderr, "Error: no database selected\n");
+		}
+	}
 	;
 
 exit:
@@ -315,6 +343,10 @@ insert:
 				fprintf(stderr, "Error: check failed\n");
 			else if (ret == QL_FOREIGNNOFOUND)
 				fprintf(stderr, "Error: foreign key no found\n");
+			else if (ret == QL_WRONGVALUENUM)
+				fprintf(stderr, "Error: wrong value number\n");
+			else if (ret == QL_WRONGTYPE)
+				fprintf(stderr, "Error: type doesn't match\n");
 		}
     }
 	;

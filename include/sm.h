@@ -90,6 +90,8 @@ int checkInTables(SM_Manager *self, char *name);
 AttrCat *getAttrCat(SM_Manager *self,
 		char *relName, char *attrName);
 
+RC SM_ShowDbs(SM_Manager *self);
+RC SM_ShowTbls(SM_Manager *self);
 RC SM_OpenDb(SM_Manager *self, char *dbName);
 RC SM_CloseDb(SM_Manager *self);
 RC SM_GetAttrCats(SM_Manager *self, char *relName,

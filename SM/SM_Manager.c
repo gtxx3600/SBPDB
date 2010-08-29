@@ -138,6 +138,28 @@ RC RelCatSetRelName(RelCat *rc, char *s) {
     return NORMAL;
 }
 
+RC SM_ShowDbs(SM_Manager *self) {
+	if (self->dbname) {
+		system("ls ..");
+	} else {
+		system("ls .");
+	}
+	return NORMAL;
+}
+
+RC SM_ShowTbls(SM_Manager *self) {
+	if (self->dbname == NULL) {
+		return SM_NODBSELECTED;
+	}
+
+	int i;
+	for (i = 0; i < self->relCount; i++) {
+		printf("%s\t", self->relRecords[i].relName);
+	}
+	printf("\n");
+	return NORMAL;
+}
+
 RC SM_UseDatabase(SM_Manager *self, char *name) {
 	int ret;
 	SM_CloseDb(self);
@@ -371,7 +393,20 @@ RC SM_DropView(SM_Manager *self, char *viewName) {
 }
 
 RC SM_Help(SM_Manager *self) {
-	printf("qs-IHS-IN\n");
+	printf("show databases\n");
+	printf("show tables\n");
+	printf("create database <dbname>\n");
+	printf("drop database <dbname>\n");
+	printf("create table <tbname> (attr type, ...)\n");
+	printf("drop table <tbname>\n");
+	printf("create view <vwname> as <query>\n");
+	printf("drop view <vwname>\n");
+	printf("select <attr, ...> from <rel, ...> where <cond>\n");
+	printf("delete from <rel> where <cond>\n");
+	printf("update <rel> set <attr>=<value>, ... where <cond>\n");
+	printf("insert into <rel> values(<value list>)\n");
+	printf("exit: quit\n");
+	printf("help: print this help\n");
 	return NORMAL;
 }
 

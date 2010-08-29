@@ -56,9 +56,10 @@ int main() {
 	chdir(BASEDIR);
 //	system("ls");
 //	yyin = input;
+	printf("Welcome to SBPDB!\n\n");
+	printf("sbpdb> ");
+	fflush(stdout);
 	while (!smm.isExit) {
-		printf("> ");
-		fflush(stdout);
 		sbp_parse(&pfm, &smm, &qlm);
 	}
 	SM_CloseDb(&smm);

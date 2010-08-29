@@ -9,7 +9,7 @@
 
 %option noyywrap
 
-WS      [\r\n\ \t\b\f]
+WS      [\r\ \t\b\f]
 DIGIT   [0-9]
 ID      [A-Za-z][_A-Za-z0-9]*
 
@@ -18,7 +18,7 @@ ID      [A-Za-z][_A-Za-z0-9]*
 %%
 
 {WS}                    /* ignore whitespace */;
-
+\n						printf("sbpdb> "); fflush(stdout);
 \"                      BEGIN(STR);
 <STR>{ID}               yylval.string = strdup(yytext); return STRING_V;
 <STR>\"                 BEGIN(INITIAL);
@@ -28,6 +28,11 @@ ID      [A-Za-z][_A-Za-z0-9]*
 ;                       return SEMICOLON;
 \.                      return DOT;
 \*                      return STAR;
+show					return SHOW;
+commit					return COMMIT;
+rollback				return ROLLBACK;
+databases				return DATABASES;
+tables					return TABLES;
 exit                    return EXIT;
 help                    return HELP;
 use						return USE;
